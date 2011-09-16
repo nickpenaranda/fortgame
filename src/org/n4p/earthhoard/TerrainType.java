@@ -17,20 +17,17 @@ public class TerrainType {
 
   private static TreeMap<Integer, TerrainType> mTerrainTypes = new TreeMap<Integer, TerrainType>();
   private int mFlags;
-  private String mName;
   private Image mImage;
   private Image mImage2;
   private int mID;
 
   public TerrainType(String name, int flags, Image img) {
-    mName = name;
     mFlags = flags;
     mImage = img;
     mImage2 = img;
   }
 
   public TerrainType(String name, int flags, Image img, Image img2) {
-    mName = name;
     mFlags = flags;
     mImage = img;
     mImage2 = img2;

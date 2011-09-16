@@ -22,6 +22,8 @@ public class MainState extends BasicGameState {
   private int mMovement = 0;
   private int mMovementTimeout = 0;
   private int mRenderTime;
+	private boolean mCtrl = false;
+	private boolean mShift = false;
 
   static final int NORTH = 1;
   static final int SOUTH = 2;
@@ -115,6 +117,14 @@ public class MainState extends BasicGameState {
   @Override
   public void keyReleased(int key, char c) {
     switch (key) {
+    case Input.KEY_LSHIFT:
+    case Input.KEY_RSHIFT:
+    	mShift = false;
+    	break;
+    case Input.KEY_LCONTROL:
+    case Input.KEY_RCONTROL:
+    	mCtrl = false;
+    	break;
     case Input.KEY_ESCAPE:
       System.exit(0);
     case Input.KEY_Q:
@@ -141,6 +151,14 @@ public class MainState extends BasicGameState {
   @Override
   public void keyPressed(int key, char c) {
     switch (key) {
+    case Input.KEY_LSHIFT:
+    case Input.KEY_RSHIFT:
+    	mShift = true;
+    	break;
+    case Input.KEY_LCONTROL:
+    case Input.KEY_RCONTROL:
+    	mCtrl = true;
+    	break;
     case Input.KEY_ESCAPE:
       System.exit(0);
     case Input.KEY_Q:
@@ -164,6 +182,18 @@ public class MainState extends BasicGameState {
     case Input.KEY_P:
       mPaused = !mPaused;
       break;
+    case Input.KEY_LBRACKET:
+    	if(mShift)
+    		World.setHeightLimit(World.getHeightLimit()-1);
+    	else
+    		World.setDepthLimit(World.getDepthLimit()-1);
+    	break;
+    case Input.KEY_RBRACKET:
+    	if(mShift)
+    		World.setHeightLimit(World.getHeightLimit()+1);
+    	else
+    		World.setDepthLimit(World.getDepthLimit()+1);
+    	break;
     }
   }
 }
