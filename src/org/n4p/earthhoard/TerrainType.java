@@ -14,6 +14,7 @@ public class TerrainType {
   public static final int GRASS = 5;
 
   public static final int F_NO_RENDER_ABOVE = 1;
+  public static final int F_NO_OCCLUDE = 2;
 
   private static TreeMap<Integer, TerrainType> mTerrainTypes = new TreeMap<Integer, TerrainType>();
   private int mFlags;
@@ -35,7 +36,7 @@ public class TerrainType {
 
   public static void init() {
     try {
-      TerrainType.add(AIR, new TerrainType("Air", 0, null));
+      TerrainType.add(AIR, new TerrainType("Air", F_NO_OCCLUDE, null));
       TerrainType.add(ROCK, new TerrainType("Rock", F_NO_RENDER_ABOVE, new Image(
           "gfx/rock.png", Color.magenta)));
       TerrainType.add(DIRT, new TerrainType("Dirt", F_NO_RENDER_ABOVE, new Image(

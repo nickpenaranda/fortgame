@@ -13,7 +13,7 @@ public class World {
 	private Terrain mTerrain;
 	private int vx = 0, vy = 0, vz = 0;
 	private static int heightLimit = 0;
-	private static int depthLimit = 2;
+	private static int depthLimit = 32;
 
 	public static int rInt(int min, int max) {
 		return (min + mRandom.nextInt(max - min - 1));
@@ -98,60 +98,69 @@ public class World {
 	}
 
 	public void render(GameContainer container, Graphics g, boolean mAnimFrame) {
-    Color color;
-    int sx = vx;
-    int sy = vy;
-    int x_off, y_off,y_off_z;
-    int tx, ty;
-    new TerrainPolygon();
-    TerrainType type[] = new TerrainType[heightLimit + depthLimit + 1];
-    
-    for (int y = 0; y < 72 + heightLimit; y++) {
-      y_off = ((y - 3) << 3);
-      if (y % 2 == 0) {// Even row
-        x_off = 0;
-        ++sx;
-      } else {
-        x_off = -16;
-        --sy;
-      }
-      tx = sx;
-      ty = sy;
-      for (int x = 0; x < 21; x++) {
-        for (int z = 0; z < depthLimit + 1 + heightLimit; ++z) {
-          type[z] = mTerrain.getTypeAt(tx, ty, vz + z - depthLimit);
-          if (type[z] != null) {
-            Image img = type[z].getImage(mAnimFrame);
-            if (img != null) {
-              if (z - depthLimit <= -3)
-                color = Color.darkGray;
-              else {
-              	switch(z - depthLimit) {
-              	case -2:
-                  color = Color.gray;
-                  break;
-              	case -1:
-              		color = Color.lightGray;
-              		break;
-              	case 0:
-              		color = null;
-              		break;
-              	default:
-              		color = Color.cyan;
-              		break;
-              	}
-              }
-              y_off_z = y_off - (z - 1 << 4) + (depthLimit << 4);
-              if(!(y_off_z < -32 || y_off_z > 480 + 32))
-              	g.drawImage(img, x_off + (x << 5), y_off_z, color);
-            }
-          }
-        }
-        ++tx;
-        ++ty;
-      }
-    }
-  }
+		Color color;
+		int sx = vx - depthLimit;
+		int sy = vy + depthLimit;
+		int x_off, y_off, y_off_z;
+		int tx, ty;
+		TerrainPolygon tPoly = new TerrainPolygon();
+		TerrainType type;
+
+		for (int y = -(depthLimit << 1); y < 61 + heightLimit; y++) {
+			y_off = ((y - 1) << 3);
+			if (y % 2 == 0) {// Even row
+				x_off = 0;
+				++sx;
+			} else {
+				x_off = -16;
+				--sy;
+			}
+			tx = sx;
+			ty = sy;
+			for (int x = 0; x < 21; x++) {
+				int depth = 0;
+				type = mTerrain.getTypeAt(tx, ty, vz);
+				while (type != null
+						&& (type.getFlags() & TerrainType.F_NO_OCCLUDE) == TerrainType.F_NO_OCCLUDE) {
+					depth++;
+					type = mTerrain.getTypeAt(tx - depth, ty + depth, vz - depth);
+				}
+
+				if (type != null) {
+					for (int z = -depth; z <= heightLimit; z++) {
+						type = mTerrain.getTypeAt(tx - depth, ty + depth, vz + z);
+						if (type != null) {
+							Image img = type.getImage(mAnimFrame);
+							if (img != null) {
+								if (z <= -3)
+									color = Color.darkGray;
+								else {
+									switch (z) {
+									case -2:
+										color = Color.gray;
+										break;
+									case -1:
+										color = Color.lightGray;
+										break;
+									case 0:
+										color = null;
+										break;
+									default:
+										color = null;
+										break;
+									}
+								}
+								y_off_z = y_off - (z << 4);
+								g.drawImage(img, x_off + (x << 5), y_off_z, color);
+							}
+						}
+					}
+				}
+				++tx;
+				++ty;
+			}
+		}
+	}
 
 	public Terrain getTerrain() {
 		return (mTerrain);
@@ -182,12 +191,14 @@ public class World {
 	}
 
 	public static void setHeightLimit(int heightLimit) {
-		if(heightLimit < 0) return;
+		if (heightLimit < 0)
+			return;
 		World.heightLimit = heightLimit;
 	}
 
 	public static void setDepthLimit(int depthLimit) {
-		if(depthLimit < 0) return;
+		if (depthLimit < 0)
+			return;
 		World.depthLimit = depthLimit;
 	}
 }
