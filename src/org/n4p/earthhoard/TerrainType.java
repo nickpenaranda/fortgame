@@ -7,6 +7,7 @@ import org.newdawn.slick.Image;
 import org.newdawn.slick.SlickException;
 
 public class TerrainType {
+  public static final int NONE = 0;
   public static final int AIR = 1;
   public static final int ROCK = 2;
   public static final int DIRT = 3;
@@ -36,17 +37,18 @@ public class TerrainType {
 
   public static void init() {
     try {
+      TerrainType.add(NONE, new TerrainType("None", 0, null));
       TerrainType.add(AIR, new TerrainType("Air", F_NO_OCCLUDE, null));
-      TerrainType.add(ROCK, new TerrainType("Rock", F_NO_RENDER_ABOVE, new Image(
-          "gfx/rock.png", Color.magenta)));
-      TerrainType.add(DIRT, new TerrainType("Dirt", F_NO_RENDER_ABOVE, new Image(
-          "gfx/dirt.png", Color.magenta)));
+      TerrainType.add(ROCK, new TerrainType("Rock", F_NO_RENDER_ABOVE,
+          new Image("gfx/terrain/rock.png", Color.magenta)));
+      TerrainType.add(DIRT, new TerrainType("Dirt", F_NO_RENDER_ABOVE,
+          new Image("gfx/terrain/dirt.png", Color.magenta)));
       TerrainType.add(WATER, new TerrainType("Water", 0, new Image(
-          "gfx/water.png", Color.magenta), new Image("gfx/water2.png",
+          "gfx/terrain/water.png", Color.magenta), new Image("gfx/terrain/water2.png",
           Color.magenta)));
-      TerrainType.add(GRASS, new TerrainType("Grass", F_NO_RENDER_ABOVE, new Image(
-          "gfx/grass.png", Color.magenta), new Image("gfx/grass2.png",
-          Color.magenta)));
+      TerrainType.add(GRASS, new TerrainType("Grass", F_NO_RENDER_ABOVE,
+          new Image("gfx/terrain/grass.png", Color.magenta), new Image(
+              "gfx/terrain/grass2.png", Color.magenta)));
     } catch (SlickException e) {
       e.printStackTrace();
     }

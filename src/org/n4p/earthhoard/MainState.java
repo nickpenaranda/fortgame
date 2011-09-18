@@ -15,6 +15,7 @@ public class MainState extends BasicGameState {
   Random mRandom = new Random();
   private long mGameTime;
   private long mLastAnimTick;
+  private long mLastConsolidate;
   private boolean mAnimFrame = true;
   private static final int ID = 1;
   private EarthHoard mGame = null;
@@ -24,6 +25,8 @@ public class MainState extends BasicGameState {
   private int mRenderTime;
 	private boolean mCtrl = false;
 	private boolean mShift = false;
+	private boolean mSlow = false;
+  private GameContainer mContainer;
 
   static final int NORTH = 1;
   static final int SOUTH = 2;
@@ -33,7 +36,8 @@ public class MainState extends BasicGameState {
   static final int DOWN = 32;
   private static final long ANIM_INTERVAL = 500;
   private static final int VERTICAL_MOVEMENT_INTERVAL = 200;
-
+  private static final Color skyColor = new Color(82,112,149);
+  private static final long CONSOLIDATE_INTERVAL = 1000;
   @Override
   public int getID() {
     return ID;
@@ -49,17 +53,23 @@ public class MainState extends BasicGameState {
     
     mGameTime = 0;
     mLastAnimTick = 0;
-    container.setShowFPS(true);
+    mLastConsolidate = 0;
+    mContainer = container;
+    mContainer.setShowFPS(true);
+    //mContainer.setClearEachFrame(false);
+
   }
 
   @Override
   public void render(GameContainer container, StateBasedGame game, Graphics g)
       throws SlickException {
+    //g.setBackground(skyColor);
     mGame.mWorld.render(container, g, mAnimFrame);
     g.setColor(Color.white);
     g.drawString("" + mGameTime + (mPaused ? " PAUSED" : ""), 10, 25);
     g.drawString("Z = " + mGame.mWorld.getViewZ(), 10, 40);
     g.drawString("Count = " + Terrain.count, 10, 55);
+    if(World.oldRender) g.drawString(">>OLD RENDERER<<", 10, 70);
   }
 
   @Override
@@ -106,6 +116,10 @@ public class MainState extends BasicGameState {
       mAnimFrame = !mAnimFrame;
       mLastAnimTick = mRenderTime;
       //System.out.println("Animation >>TICK<<");
+    }
+    if(mRenderTime - mLastConsolidate > CONSOLIDATE_INTERVAL) {
+      mGame.mWorld.getTerrain().consolidateDown();
+      mLastConsolidate = mRenderTime;
     }
     
     if (!mPaused) {
@@ -194,6 +208,33 @@ public class MainState extends BasicGameState {
     	else
     		World.setDepthLimit(World.getDepthLimit()+1);
     	break;
+    case Input.KEY_X:
+      mSlow = !mSlow;
+      if(mSlow) mContainer.setTargetFrameRate(1);
+      else mContainer.setTargetFrameRate(-1);
+      break;
+    case Input.KEY_Z:
+      World.oldRender = !World.oldRender;
+      break;
     }
   }
+
+  @Override
+  public void mousePressed(int button, int x, int y) {
+    // TODO Auto-generated method stub
+    System.out.printf("Mouse clicked @ (%d,%d)\n",x,y);
+    Coord w = mGame.mWorld.screenToWorld(x,y);
+    System.out.printf("World coords (%d,%d,%d)\n",(int)w.x,(int)w.y,(int)w.z);
+    
+    super.mousePressed(button, x, y);
+  }
+
+  @Override
+  public void mouseMoved(int oldx, int oldy, int newx, int newy) {
+    // TODO Auto-generated method stub
+    mGame.mWorld.screenToWorld(newx,newy);
+    super.mouseMoved(oldx, oldy, newx, newy);
+  }
+  
+  
 }
