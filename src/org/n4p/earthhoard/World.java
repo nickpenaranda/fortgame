@@ -56,8 +56,8 @@ public class World {
     heightmap[0][0] = heightmap[0][worldSize] = heightmap[worldSize][0] = heightmap[worldSize][worldSize] = 0;
     diamond_square(heightmap, 0, 0, worldSize, worldSize);
 
-    for (int x = 0; x < worldSize + 1; ++x) {
-      for (int y = 0; y < worldSize + 1; ++y) {
+    for (int x = 0; x < worldSize ; ++x) {
+      for (int y = 0; y < worldSize ; ++y) {
         mTerrain.setVolume(x - worldSize / 2, y - worldSize / 2,
             -worldSize / 2, x - worldSize / 2, y - worldSize / 2, Math
                 .round(heightmap[x][y]), TerrainType.get(TerrainType.DIRT));
@@ -67,8 +67,8 @@ public class World {
 
     // Fill with water
     int waterLevel = EarthHoard.r.nextInt(8) - 8;
-    for (int x = -worldSize / 2; x <= worldSize / 2; ++x) {
-      for (int y = -worldSize / 2; y <= worldSize / 2; ++y) {
+    for (int x = -worldSize / 2; x < worldSize / 2; ++x) {
+      for (int y = -worldSize / 2; y < worldSize / 2; ++y) {
         int surfZ = findSurfaceZ(x, y);
         if (waterLevel >= surfZ)
           mTerrain.setVolume(x, y, surfZ, x, y, waterLevel, TerrainType
@@ -76,6 +76,9 @@ public class World {
       }
     }
     mTerrain.consolidateDown();
+    
+    // TEST
+//    mTerrain.setBlock(64, 64,1,TerrainType.get(TerrainType.GRASS));
   }
 
   private float mean(float a, float b) {
@@ -102,7 +105,7 @@ public class World {
   }
 
   public int findSurfaceZ(int x, int y) {
-    int z = worldSize / 2;
+    int z = worldSize / 2 - 1;
     TerrainType air = TerrainType.get(TerrainType.AIR);
     while (mTerrain.getTypeAt(x, y, z) == air)
       z--;
@@ -270,8 +273,8 @@ public class World {
   public boolean isTraversible(Coord c) {
     return(
         (getTerrain().getAt(c.move(0,0,-1)).mType.getFlags() & TerrainType.SOLID) == TerrainType.SOLID &&
-        (getTerrain().getAt(c).mType.getFlags() & TerrainType.CAN_TRAVEL) == TerrainType.CAN_TRAVEL &&
-        (getTerrain().getAt(c.move(0,0,1)).mType.getFlags() & TerrainType.CAN_TRAVEL) == TerrainType.CAN_TRAVEL
+        (getTerrain().getAt(c).mType.getFlags() & TerrainType.CAN_TRAVEL) == TerrainType.CAN_TRAVEL //&&
+        //(getTerrain().getAt(c.move(0,0,1)).mType.getFlags() & TerrainType.CAN_TRAVEL) == TerrainType.CAN_TRAVEL
     );
   }
   
@@ -282,6 +285,7 @@ public class World {
   }
 
   public void setPathStart() {
+    if(!isInBounds(cursorPos) || !isTraversible(cursorPos)) return;
     if(startPathPos != null) {
       getTerrain().getFixturesAt(startPathPos).remove(Fixture.get(Fixture.START_MARKER));
     }
@@ -305,10 +309,15 @@ public class World {
   }
 
   public void setPathEnd() {
+    if(!isInBounds(cursorPos) || !isTraversible(cursorPos)) return;
     if(endPathPos != null) {
       getTerrain().getFixturesAt(endPathPos).remove(Fixture.get(Fixture.END_MARKER));
     }
     getTerrain().getFixturesAt(cursorPos).add(Fixture.get(Fixture.END_MARKER));
     endPathPos = cursorPos;
+  }
+
+  public Coord getCursorPos() {
+    return(cursorPos);
   }
 }

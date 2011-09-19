@@ -18,6 +18,7 @@ public class PathFinder {
   }
 
   public static Path findPath(Coord start, Coord end) {
+    long startTime = System.nanoTime() / 1000000;
     boolean pathFound = false;
     int attempts = 0;
     Path p = null;
@@ -29,7 +30,8 @@ public class PathFinder {
 
     open.add(new Node(start, end, null, 0));
 
-    while (!pathFound && attempts++ < 1000) {
+    while (!pathFound /*&& attempts++ < 5000*/) {
+      attempts++;
       Collections.sort(open);
 
       if (open.isEmpty())
@@ -45,14 +47,25 @@ public class PathFinder {
       closed.add(c);
       open.remove(c);
 
-      for (int x = -1; x <= 1; ++x) {
-        for (int y = -1; y <= 1; ++y) {
-          for (int z = -1; z <= 1; ++z) {
-            if (!(x == 0 && y == 0 && z == 0))
-              checkAdjacent(c, x, y, z);
-          }
-        }
-      }
+      checkAdjacent(c, -1, -1, 0, 141);
+      checkAdjacent(c, 0, -1, 0, 100);
+      checkAdjacent(c, 1, -1, 0, 141);
+      checkAdjacent(c, -1, 0, 0, 100);
+      checkAdjacent(c, 1, 0, 0, 100);
+      checkAdjacent(c, -1, 1, 0, 141);
+      checkAdjacent(c, 0, 1, 0, 100);
+      checkAdjacent(c, 1, 1, 0, 141);
+
+      checkAdjacent(c, 0, -1, 1, 224);
+      checkAdjacent(c, -1, 0, 1, 224);
+      checkAdjacent(c, 1, 0, 1, 224);
+      checkAdjacent(c, 0, 1, 1, 224);
+
+      checkAdjacent(c, 0, -1, -1, 141);
+      checkAdjacent(c, -1, 0, -1, 141);
+      checkAdjacent(c, 1, 0, -1, 141);
+      checkAdjacent(c, 0, 1, -1, 141);
+    
     }
 
     if (pathFound) {
@@ -60,24 +73,27 @@ public class PathFinder {
       do {
         p.addLast(c.getLoc());
         c = c.getParent();
-      } while (c.getParent() != null);
+      } while (c != null && c.getParent() != null);
     }
-
+    System.out.printf("Pathfinder: %d attempts in %dms\n", attempts, System
+        .nanoTime()
+        / 1000000 - startTime);
     return (p);
   }
 
-  private static void checkAdjacent(Node n,int dx,int dy,int dz) {
-    int cost = (int) (Math.sqrt(dx * dx + dy * dy + dz * dz) * 100);
+  private static void checkAdjacent(Node n, int dx, int dy, int dz, int cost) {
+    // int cost = (int) (Math.sqrt(dx * dx + dy * dy + dz * dz) * 100);
     Coord me = new Coord(n.getLoc().move(dx, dy, dz));
     if (World.isInBounds(me)) { // Bound check
-      Node m = new Node(me,n.getEnd(),n,cost);
-      if(!mWorld.isTraversible(me) || closed.contains(m))
+      Node m = new Node(me, n.getEnd(), n, cost);
+      if (!mWorld.isTraversible(me) || closed.contains(m))
         return;
       else {
-        if (!open.contains(m)) {
+        int i = open.indexOf(m);
+        if (i == -1) {
           open.add(m);
         } else {
-          Node o = open.get(open.indexOf(m));
+          Node o = open.get(i);
           if (o.projG(n, cost) < o.getG()) {
             o.setParent(n, cost);
             Collections.sort(open);
@@ -111,7 +127,7 @@ public class PathFinder {
 
     public int calcH() {
       int dx = mEnd.x - mLoc.x, dy = mEnd.y - mLoc.y, dz = mEnd.z - mLoc.z;
-      return ((int) (Math.sqrt(dx * dx + dy * dy + dz * dz) * 100));
+      return ((int) (Math.sqrt(dx * dx + dy * dy + dz * dz) * 100 * 2));
     }
 
     public int calcG() {
@@ -150,7 +166,7 @@ public class PathFinder {
     public int getF() {
       return F;
     }
-    
+
     public int getG() {
       return G;
     }
@@ -177,10 +193,10 @@ public class PathFinder {
       Node that = (Node) aThat;
       return (this.getLoc().equals(that.getLoc()));
     }
-    
+
     @Override
     public String toString() {
-      return(String.format("%s F = %d G=%d",this.mLoc,F,G));
+      return (String.format("%s F = %d G=%d", this.mLoc, F, G));
     }
   }
 }

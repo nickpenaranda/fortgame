@@ -35,7 +35,8 @@ public class Fixture {
           new Image("gfx/fixtures/start2.png",Color.magenta)));
       add(END_MARKER,new Fixture("End Marker",new Image("gfx/fixtures/end.png",Color.magenta),
           new Image("gfx/fixtures/end2.png",Color.magenta)));
-      add(PATH_MARKER,new Fixture("End Marker",new Image("gfx/fixtures/pathmarker.png",Color.magenta)));
+      add(PATH_MARKER,new Fixture("End Marker",new Image("gfx/fixtures/pathmarker.png",Color.magenta),
+          new Image("gfx/fixtures/pathmarker2.png",Color.magenta)));
     } catch(SlickException e) {
       e.printStackTrace();
     }

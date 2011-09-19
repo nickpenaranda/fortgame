@@ -122,8 +122,8 @@ public class Terrain {
     sx = x;
     sy = y;
     sz = z;
-    if (sx > this.x + size || sx < this.x || sy > this.y + size || sy < this.y
-        || sz > this.z + size || sz < this.z) {
+    if (sx >= this.x + size || sx < this.x || sy >= this.y + size || sy < this.y
+        || sz >= this.z + size || sz < this.z) {
       // System.out.printf("getAt:(%d,%d,%d) is out of bounds for %s\n",x,y,z,this);
       return (null);
     } else if (isLeaf)
@@ -165,8 +165,8 @@ public class Terrain {
     sx = x;
     sy = y;
     sz = z;
-    if (sx > this.x + size || sx < this.x || sy > this.y + size || sy < this.y
-        || sz > this.z + size || sz < this.z) {
+    if (sx >= this.x + size || sx < this.x || sy >= this.y + size || sy < this.y
+        || sz >= this.z + size || sz < this.z) {
       // System.out.printf("getTypeAt:(%d,%d,%d) is out of bounds for %s\n",x,y,z,this);
       return (TerrainType.get(TerrainType.NONE));
     } else if (isLeaf)
@@ -289,8 +289,8 @@ public class Terrain {
       return; // If this node is already min size, do nothing
     }
 
-    if (x > this.x + size || x < this.x || y > this.y + size || y < this.y
-        || z > this.z + size || z < this.z) {
+    if (x >= this.x + size || x < this.x || y >= this.y + size || y < this.y
+        || z >= this.z + size || z < this.z) {
       System.out.printf("(%d,%d,%d) out of bonds for %s\n", x, y, z, this);
       return; // If out of bounds, do nothing
     }
@@ -372,6 +372,7 @@ public class Terrain {
   public ArrayList<Fixture> getFixturesAt(Coord c) {
     articulate(c.x,c.y,c.z,null,null,1); // Articulate to individual block, if not already
     Terrain t = getAt(c.x,c.y,c.z);
+    if(t == null) return(null);
     if(t.getFixtures() == null)
       t.initFixtures();
     return(t.getFixtures());

@@ -11,7 +11,6 @@ import org.newdawn.slick.SlickException;
 import org.newdawn.slick.state.BasicGameState;
 import org.newdawn.slick.state.StateBasedGame;
 
-@SuppressWarnings("unused")
 public class MainState extends BasicGameState {
   private static final long ANIM_INTERVAL = 500;
   private static final int VERTICAL_MOVEMENT_INTERVAL = 200;
@@ -221,13 +220,15 @@ public class MainState extends BasicGameState {
 
   @Override
   public void mousePressed(int button, int x, int y) {
+    System.out.printf("Click @ %s\n",mGame.mWorld.getCursorPos());
     switch(button) {
     case 1:
       // Center to location
       mGame.mWorld.centerAtCursor();
       break;
     case 0:
-      if(mShift) mGame.mWorld.setPathStart();
+      if(mCtrl) System.out.printf("%s\n", mGame.mWorld.getTerrain().getAt(mGame.mWorld.getCursorPos()));
+      else if(mShift) mGame.mWorld.setPathStart();
       else mGame.mWorld.setPathEnd();
       mGame.mWorld.findPath();
       break;
