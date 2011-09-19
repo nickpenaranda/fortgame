@@ -1,5 +1,10 @@
 package org.n4p.earthhoard;
 
+import java.util.ArrayList;
+
+import org.n4p.earthhoard.fixtures.Fixture;
+import org.n4p.earthhoard.terrain.Terrain;
+import org.n4p.earthhoard.terrain.TerrainType;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
@@ -11,6 +16,8 @@ public class World {
 
   private Coord viewPos = new Coord(0, 0, 0);
   private Coord cursorPos = new Coord(0, 0, 0);
+  private Coord startPathPos = null, endPathPos = null;
+  private Path mPath = null;
   
   private static int adjust_x = -31;
   private static int adjust_y = 11;
@@ -99,6 +106,8 @@ public class World {
     TerrainType air = TerrainType.get(TerrainType.AIR);
     while (mTerrain.getTypeAt(x, y, z) == air)
       z--;
+    if(z < -64) 
+      z = -64;
     return (z);
   }
 
@@ -143,11 +152,18 @@ public class World {
       for (int x = 0; x < 21; ++x) {
         for (int z = 0; z < depthLimit + 1 + heightLimit; ++z) {
           
-          t[z] = mTerrain.getAt(tx, ty, viewPos.z + z - depthLimit);
+          t[z] = mTerrain.getAt(tx, ty, viewPos.z + z - depthLimit - 1);
           
           if (t[z] != null
               && mTerrain.isVisible(tx, ty, viewPos.z + z - depthLimit)) {
             
+            y_off_z = y_off - ((z - 1) << 4) + (depthLimit << 4);
+            if (z < depthLimit)
+              color = depthFilter[z];
+            else
+              color = null;
+
+            // Draw terrain
             Image img = t[z].mType.getImage(mAnimFrame);
             
             if (img != null) {
@@ -156,8 +172,6 @@ public class World {
                 color = depthFilter[z];
               else
                 color = null;
-
-              y_off_z = y_off - ((z - 1) << 4) + (depthLimit << 4);
 
               if (!(y_off_z < -32 || y_off_z > 480 + 32)) {
                 
@@ -175,6 +189,14 @@ public class World {
                     g.drawImage(activeGrid, x_off + (x << 5), y_off_z,
                         Color.white);
                 }
+              }
+            }
+            
+            // Draw fixtures
+            ArrayList<Fixture> fixtures = t[z].getFixtures();
+            if(fixtures != null && !fixtures.isEmpty()) {
+              for(Fixture f:fixtures) {
+                g.drawImage(f.getImage(mAnimFrame), x_off + (x << 5),y_off_z - 16,color);
               }
             }
           }
@@ -238,10 +260,55 @@ public class World {
   }
   
   public void centerAt(int x,int y,int z) {
-    viewPos.setLocation(x,y,z);
+    viewPos.setTo(x,y,z);
   }
 
   public void centerAtCursor() {
     centerAt(cursorPos);
+  }
+  
+  public boolean isTraversible(Coord c) {
+    return(
+        (getTerrain().getAt(c.move(0,0,-1)).mType.getFlags() & TerrainType.SOLID) == TerrainType.SOLID &&
+        (getTerrain().getAt(c).mType.getFlags() & TerrainType.CAN_TRAVEL) == TerrainType.CAN_TRAVEL &&
+        (getTerrain().getAt(c.move(0,0,1)).mType.getFlags() & TerrainType.CAN_TRAVEL) == TerrainType.CAN_TRAVEL
+    );
+  }
+  
+  public static boolean isInBounds(Coord c) {
+    return(c.x >= -worldSize/2 && c.x < worldSize/2 &&
+           c.y >= -worldSize/2 && c.y < worldSize/2 &&
+           c.z >= -worldSize/2 && c.z < worldSize/2);
+  }
+
+  public void setPathStart() {
+    if(startPathPos != null) {
+      getTerrain().getFixturesAt(startPathPos).remove(Fixture.get(Fixture.START_MARKER));
+    }
+    getTerrain().getFixturesAt(cursorPos).add(Fixture.get(Fixture.START_MARKER));
+    startPathPos = cursorPos;
+  }
+
+  public void findPath() {
+    if(startPathPos != null && endPathPos != null) {
+      if(mPath != null)
+        for(Coord p:mPath) {
+          getTerrain().getFixturesAt(p).remove(Fixture.get(Fixture.PATH_MARKER));
+        }
+      mPath = PathFinder.findPath(startPathPos, endPathPos);
+    }
+    if(mPath != null) {
+      for(Coord p:mPath) {
+        getTerrain().getFixturesAt(p).add(Fixture.get(Fixture.PATH_MARKER));
+      }
+    }
+  }
+
+  public void setPathEnd() {
+    if(endPathPos != null) {
+      getTerrain().getFixturesAt(endPathPos).remove(Fixture.get(Fixture.END_MARKER));
+    }
+    getTerrain().getFixturesAt(cursorPos).add(Fixture.get(Fixture.END_MARKER));
+    endPathPos = cursorPos;
   }
 }

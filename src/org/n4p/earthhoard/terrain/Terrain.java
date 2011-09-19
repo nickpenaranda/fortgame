@@ -1,4 +1,9 @@
-package org.n4p.earthhoard;
+package org.n4p.earthhoard.terrain;
+
+import java.util.ArrayList;
+
+import org.n4p.earthhoard.Coord;
+import org.n4p.earthhoard.fixtures.Fixture;
 
 public class Terrain {
   public static enum Visibility {
@@ -14,8 +19,11 @@ public class Terrain {
   private int mx, my, mz;
   private int size;
   public TerrainType mType;
+    
+  private ArrayList<Fixture> mFixtures = null;
 
-  public Terrain(Terrain parent, int x, int y, int z, int size, TerrainType type, Visibility v) {
+  public Terrain(Terrain parent, int x, int y, int z, int size,
+      TerrainType type, Visibility v) {
     this.x = x;
     this.y = y;
     this.z = z;
@@ -27,7 +35,7 @@ public class Terrain {
     this.size = size;
     this.isLeaf = true;
     this.mType = type;
-    if(v == null)
+    if (v == null)
       this.mVisible = Visibility.UNDEFINED;
     else
       this.mVisible = v;
@@ -104,6 +112,10 @@ public class Terrain {
         }
       }
     }
+  }
+
+  public Terrain getAt(Coord c) {
+    return (getAt(c.x, c.y, c.z));
   }
 
   public Terrain getAt(int x, int y, int z) {
@@ -207,68 +219,38 @@ public class Terrain {
 
     if (!isLeaf && canConsolidate()) {
       mType = children[0].mType;
-      mVisible = children[0].mVisible; 
+      mVisible = children[0].mVisible;
       children = null;
       isLeaf = true;
       count -= 8;
     }
   }
 
-//   public boolean canConsolidate() {
-//   // If any children are not leaves, false
-//   if(!children[0].isLeaf && !children[1].isLeaf &&
-//       !children[2].isLeaf && !children[3].isLeaf &&
-//       !children[4].isLeaf && !children[5].isLeaf &&
-//       !children[6].isLeaf && !children[7].isLeaf)
-//     return(false);
-//     
-//   // Sort children
-//   int s, t[] = new int[] {
-//   children[0].mType.getID(), children[1].mType.getID(),
-//   children[2].mType.getID(), children[3].mType.getID(),
-//   children[4].mType.getID(), children[5].mType.getID(),
-//   children[6].mType.getID(), children[7].mType.getID()
-//   };
-//      
-//   if(t[0] > t[7]) { s = t[0]; t[0] = t[7]; t[7] = s; }
-//   if(t[1] > t[6]) { s = t[1]; t[1] = t[6]; t[6] = s; }
-//   if(t[2] > t[5]) { s = t[2]; t[2] = t[5]; t[5] = s; }
-//   if(t[3] > t[4]) { s = t[3]; t[3] = t[4]; t[4] = s; }
-//   if(t[0] > t[3]) { s = t[0]; t[0] = t[3]; t[3] = s; }
-//   if(t[4] > t[7]) { s = t[4]; t[4] = t[7]; t[7] = s; }
-//   if(t[1] > t[2]) { s = t[1]; t[1] = t[2]; t[2] = s; }
-//   if(t[5] > t[6]) { s = t[5]; t[5] = t[6]; t[6] = s; }
-//   if(t[0] > t[1]) { s = t[0]; t[0] = t[1]; t[1] = s; }
-//   if(t[2] > t[3]) { s = t[2]; t[2] = t[3]; t[3] = s; }
-//   if(t[4] > t[5]) { s = t[4]; t[4] = t[5]; t[5] = s; }
-//   if(t[6] > t[7]) { s = t[6]; t[6] = t[7]; t[7] = s; }
-//   if(t[2] > t[4]) { s = t[2]; t[2] = t[4]; t[4] = s; }
-//   if(t[3] > t[5]) { s = t[3]; t[3] = t[5]; t[5] = s; }
-//   if(t[1] > t[2]) { s = t[1]; t[1] = t[2]; t[2] = s; }
-//   if(t[3] > t[4]) { s = t[3]; t[3] = t[4]; t[4] = s; }
-//   if(t[5] > t[6]) { s = t[5]; t[5] = t[6]; t[6] = s; }
-//   if(t[2] > t[3]) { s = t[2]; t[2] = t[3]; t[3] = s; }
-//   if(t[4] > t[5]) { s = t[4]; t[4] = t[5]; t[5] = s; }
-//      
-//   boolean r = t[0] == t[7];
-//   return(r);
-//      
-//   }
+//  public boolean canConsolidate() {
+//    int id = children[0].mType.getID();
+//    Visibility visibility = children[0].getVisibility();
+//    if (id != children[7].mType.getID()
+//        || visibility != children[7].getVisibility())
+//      return (false);
+//    for (int i = 0; i < 8; ++i)
+//      if (!children[i].isLeaf || children[i].mType.getID() != id
+//          || children[i].getVisibility() != visibility)
+//        return (false);
+//
+//    return (true);
+//  }
 
   public boolean canConsolidate() {
-    int id = children[0].mType.getID();
-    Visibility visibility = children[0].getVisibility();
-    if (id != children[7].mType.getID() ||
-        visibility != children[7].getVisibility())
-      return (false);
-    for (int i = 0; i < 8; ++i)
-      if (!children[i].isLeaf || children[i].mType.getID() != id ||
-          children[i].getVisibility() != visibility)
-        return (false);
-
-    return (true);
+    int j,k;
+    for(int i=0;i<8;i++) {
+      j = i == 7 ? 0 : i + 1;
+      k = i == 0 ? 7 : i - 1;
+      if(!children[i].isLeaf || !children[i].equals(children[j]) || !children[i].equals(children[k]))
+        return(false);
+    }
+    return(true);
   }
-
+  
   public void setVolume(int x1, int y1, int z1, int x2, int y2, int z2,
       TerrainType type) {
     int minSize = Math.min(Math.min(Math.abs(x1 - x2), Math.abs(y1 - y2)), Math
@@ -289,18 +271,21 @@ public class Terrain {
   public void setBlock(int x, int y, int z, TerrainType type) {
     articulate(x, y, z, type, null, 1);
   }
-  
-  public void setVisibilityAt(Visibility v,int x,int y,int z) {
-    articulate(x,y,z, null, v, 1);
+
+  public void setVisibilityAt(Visibility v, int x, int y, int z) {
+    articulate(x, y, z, null, v, 1);
   }
-  
-  private void articulate(int x, int y, int z, TerrainType type, Visibility v, int minSize) {
+
+  private void articulate(int x, int y, int z, TerrainType type, Visibility v,
+      int minSize) {
     if (isLeaf && mType == type && mVisible == v)
       return;
 
     if (this.size <= minSize) {
-      if(type != null) this.mType = type;
-      if(v != null) this.mVisible = v;
+      if (type != null)
+        this.mType = type;
+      if (v != null)
+        this.mVisible = v;
       return; // If this node is already min size, do nothing
     }
 
@@ -357,31 +342,24 @@ public class Terrain {
     }
   }
 
-   public boolean isVisible(int x, int y, int z) {
-   Terrain t = getAt(x,y,z);
-   if(t == null) return(false);
-      
-   if (t.getVisibility() == Visibility.UNDEFINED)
-   t.setVisibilityAt( ((getTypeAt(x + 1, y, z).getFlags()
-   | getTypeAt(x - 1, y, z).getFlags()
-   | getTypeAt(x, y + 1, z).getFlags()
-   | getTypeAt(x, y - 1, z).getFlags()
-   | getTypeAt(x, y, z + 1).getFlags()
-   | getTypeAt(x, y, z - 1).getFlags()) & TerrainType.NO_OCCLUDE) ==
-   TerrainType.NO_OCCLUDE ? Visibility.VISIBLE
-   : Visibility.HIDDEN,x,y,z);
-      
-   return (t.getVisibility() == Visibility.VISIBLE ? true : false);
-   }
-//  public boolean isVisible(int x, int y, int z) {
-//    return(((getTypeAt(x + 1, y, z).getFlags()
-//           | getTypeAt(x - 1, y, z).getFlags()
-//           | getTypeAt(x, y + 1, z).getFlags()
-//           | getTypeAt(x, y - 1, z).getFlags()
-//           | getTypeAt(x, y, z + 1).getFlags() 
-//           | getTypeAt(x, y, z - 1).getFlags()) & TerrainType.F_NO_OCCLUDE) == TerrainType.F_NO_OCCLUDE ? true
-//              : false);
-//  }
+  public boolean isVisible(int x, int y, int z) {
+    Terrain t = getAt(x, y, z);
+    if (t == null)
+      return (false);
+
+    if (t.getVisibility() == Visibility.UNDEFINED)
+      t
+          .setVisibilityAt(
+              ((getTypeAt(x + 1, y, z).getFlags()
+                  | getTypeAt(x - 1, y, z).getFlags()
+                  | getTypeAt(x, y + 1, z).getFlags()
+                  | getTypeAt(x, y - 1, z).getFlags()
+                  | getTypeAt(x, y, z + 1).getFlags() | getTypeAt(x, y, z - 1)
+                  .getFlags()) & TerrainType.NO_OCCLUDE) == TerrainType.NO_OCCLUDE ? Visibility.VISIBLE
+                  : Visibility.HIDDEN, x, y, z);
+
+    return (t.getAt(x,y,z).getVisibility() == Visibility.VISIBLE ? true : false);
+  }
 
   public Visibility getVisibility() {
     return mVisible;
@@ -389,5 +367,34 @@ public class Terrain {
 
   public void setVisibility(Visibility v) {
     mVisible = v;
+  }
+  
+  public ArrayList<Fixture> getFixturesAt(Coord c) {
+    articulate(c.x,c.y,c.z,null,null,1); // Articulate to individual block, if not already
+    Terrain t = getAt(c.x,c.y,c.z);
+    if(t.getFixtures() == null)
+      t.initFixtures();
+    return(t.getFixtures());
+  }
+  
+  private void initFixtures() {
+    mFixtures = new ArrayList<Fixture>();
+  }
+
+  public ArrayList<Fixture> getFixtures() {
+    return(mFixtures);
+  }
+  
+  @Override
+  public boolean equals(Object aThat) {
+    if(this == aThat) return(true);
+    if(!(aThat instanceof Terrain)) return(false);
+    Terrain that = (Terrain)aThat;
+    
+    // Equivalent iff...
+    return(this.mVisible == that.mVisible && // Both visible or both hidden or both undefined
+        this.mType.getID() == that.mType.getID() && // Both same type
+        (this.mFixtures == null || this.mFixtures.isEmpty()) && // This has no fixtures
+        (that.mFixtures == null || that.mFixtures.isEmpty())); // That has no fixtures
   }
 }

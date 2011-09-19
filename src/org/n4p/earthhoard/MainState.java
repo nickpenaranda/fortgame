@@ -1,5 +1,8 @@
 package org.n4p.earthhoard;
 
+import org.n4p.earthhoard.fixtures.Fixture;
+import org.n4p.earthhoard.terrain.Terrain;
+import org.n4p.earthhoard.terrain.TerrainType;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
@@ -8,6 +11,7 @@ import org.newdawn.slick.SlickException;
 import org.newdawn.slick.state.BasicGameState;
 import org.newdawn.slick.state.StateBasedGame;
 
+@SuppressWarnings("unused")
 public class MainState extends BasicGameState {
   private static final long ANIM_INTERVAL = 500;
   private static final int VERTICAL_MOVEMENT_INTERVAL = 200;
@@ -27,7 +31,7 @@ public class MainState extends BasicGameState {
   private int mVerticalTimeout = 0;
   private int mRenderTime;
   
-	private boolean mCtrl = false;
+  private boolean mCtrl = false;
 	private boolean mShift = false;
 
   static final int NORTH = 1;
@@ -49,8 +53,12 @@ public class MainState extends BasicGameState {
     mContainer = container;
 
     TerrainType.init();
+    Fixture.init();
+    
     mGame.mWorld = new World();
     mGame.mWorld.init();
+    
+    PathFinder.init(mGame.mWorld);
     
     mGameTime = 0;
     mLastAnim = 0;
@@ -217,6 +225,12 @@ public class MainState extends BasicGameState {
     case 1:
       // Center to location
       mGame.mWorld.centerAtCursor();
+      break;
+    case 0:
+      if(mShift) mGame.mWorld.setPathStart();
+      else mGame.mWorld.setPathEnd();
+      mGame.mWorld.findPath();
+      break;
     }
   }
 
