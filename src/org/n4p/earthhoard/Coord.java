@@ -19,4 +19,10 @@ public class Coord {
   public String toString() {
     return(String.format("(%d,%d,%d)", x,y,z));
   }
+
+  public void setLocation(int x, int y, int z) {
+    this.x = x;
+    this.y = y;
+    this.z = z;    
+  }
 }

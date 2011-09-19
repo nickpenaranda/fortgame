@@ -11,6 +11,9 @@ public class World {
 
   private Coord viewPos = new Coord(0, 0, 0);
   private Coord cursorPos = new Coord(0, 0, 0);
+  
+  private static int adjust_x = -31;
+  private static int adjust_y = 11;
 
   private static int heightLimit = 1;
   private static int depthLimit = 6;
@@ -120,8 +123,8 @@ public class World {
 
   public void render(GameContainer container, Graphics g, boolean mAnimFrame) {
     Color color;
-    int sx = viewPos.x;
-    int sy = viewPos.y;
+    int sx = viewPos.x + adjust_x;
+    int sy = viewPos.y + adjust_y;
     int x_off, y_off, y_off_z;
     int tx, ty;
     Terrain t[] = new Terrain[heightLimit + depthLimit + 1];
@@ -223,10 +226,22 @@ public class World {
 
   public Coord screenToWorld(int x, int y) {
     int wx = viewPos.x + 7
-        + Math.round(((x - 16) / (float) 32) + ((y) / (float) 16));
+        + Math.round(((x - 16) / (float) 32) + ((y) / (float) 16)) + adjust_x;
     int wy = viewPos.y - 6
-        + Math.round(((x - 16) / (float) 32) - ((y) / (float) 16));
+        + Math.round(((x - 16) / (float) 32) - ((y) / (float) 16)) + adjust_y;
 
     return new Coord(wx, wy, viewPos.z);
+  }
+  
+  public void centerAt(Coord c) {
+    viewPos = c;
+  }
+  
+  public void centerAt(int x,int y,int z) {
+    viewPos.setLocation(x,y,z);
+  }
+
+  public void centerAtCursor() {
+    centerAt(cursorPos);
   }
 }

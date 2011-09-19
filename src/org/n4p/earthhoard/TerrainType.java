@@ -14,8 +14,7 @@ public class TerrainType {
   public static final int WATER = 4;
   public static final int GRASS = 5;
 
-  public static final int NO_RENDER_ABOVE = 1;
-  public static final int NO_OCCLUDE = 2;
+  public static final int NO_OCCLUDE = 1;
 
   private static TreeMap<Integer, TerrainType> mTerrainTypes = new TreeMap<Integer, TerrainType>();
   private int mFlags;

@@ -213,6 +213,11 @@ public class MainState extends BasicGameState {
 
   @Override
   public void mousePressed(int button, int x, int y) {
+    switch(button) {
+    case 1:
+      // Center to location
+      mGame.mWorld.centerAtCursor();
+    }
   }
 
   @Override
