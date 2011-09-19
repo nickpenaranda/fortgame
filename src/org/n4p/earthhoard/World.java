@@ -7,7 +7,6 @@ import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Image;
 import org.newdawn.slick.SlickException;
-import org.newdawn.slick.geom.Polygon;
 
 public class World {
   private static Random mRandom = new Random();
@@ -101,9 +100,6 @@ public class World {
       z--;
     return (z);
   }
-
-  private static final int x_adjust = 57;
-  private static final int y_adjust = 37;
   
   public void adjustView(int dx, int dy, int dz) {
     vx += dx;
@@ -206,9 +202,7 @@ public class World {
     World.depthLimit = depthLimit;
   }
 
-  public Coord screenToWorld(int x, int y) {
-    int y_row = Math.round((y - 8) / (float)16);
-    
+  public Coord screenToWorld(int x, int y) {    
     int wx = vx + 7 + Math.round(((x - 16) / (float)32) + ((y) / (float)16));
     int wy = vy - 6 + Math.round(((x - 16) / (float)32) - ((y) / (float)16));
     //if((y_row & 1) != 0)

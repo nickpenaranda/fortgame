@@ -23,6 +23,7 @@ public class MainState extends BasicGameState {
   private int mMovement = 0;
   private int mMovementTimeout = 0;
   private int mRenderTime;
+  
 	private boolean mCtrl = false;
 	private boolean mShift = false;
 	private boolean mSlow = false;
