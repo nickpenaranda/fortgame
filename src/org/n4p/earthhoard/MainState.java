@@ -1,7 +1,5 @@
 package org.n4p.earthhoard;
 
-import java.util.Random;
-
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
@@ -11,23 +9,26 @@ import org.newdawn.slick.state.BasicGameState;
 import org.newdawn.slick.state.StateBasedGame;
 
 public class MainState extends BasicGameState {
-  static final int types[] = { 1, 2, 3, 5 };
-  Random mRandom = new Random();
-  private long mGameTime;
-  private long mLastAnimTick;
-  private long mLastConsolidate;
+  private static final long ANIM_INTERVAL = 500;
+  private static final int VERTICAL_MOVEMENT_INTERVAL = 200;
+  private static final long CONSOLIDATE_INTERVAL = 1000;
+  private static final int MOVEMENT_SCALE = 14;
+
+  private long mGameTime, mLastAnim, mLastConsolidate;
   private boolean mAnimFrame = true;
-  private static final int ID = 1;
-  private EarthHoard mGame = null;
+  private static final int STATE_ID = 1;
+  
+  private EarthHoard mGame;
+  private GameContainer mContainer;
+  
   private boolean mPaused = false;
+  
   private int mMovement = 0;
-  private int mMovementTimeout = 0;
+  private int mVerticalTimeout = 0;
   private int mRenderTime;
   
 	private boolean mCtrl = false;
 	private boolean mShift = false;
-	private boolean mSlow = false;
-  private GameContainer mContainer;
 
   static final int NORTH = 1;
   static final int SOUTH = 2;
@@ -35,50 +36,46 @@ public class MainState extends BasicGameState {
   static final int EAST = 8;
   static final int UP = 16;
   static final int DOWN = 32;
-  private static final long ANIM_INTERVAL = 500;
-  private static final int VERTICAL_MOVEMENT_INTERVAL = 200;
-  private static final Color skyColor = new Color(82,112,149);
-  private static final long CONSOLIDATE_INTERVAL = 1000;
+  
   @Override
   public int getID() {
-    return ID;
+    return STATE_ID;
   }
 
   @Override
   public void init(GameContainer container, StateBasedGame game)
       throws SlickException {
     mGame = (EarthHoard) game;
+    mContainer = container;
+
     TerrainType.init();
     mGame.mWorld = new World();
     mGame.mWorld.init();
     
     mGameTime = 0;
-    mLastAnimTick = 0;
+    mLastAnim = 0;
     mLastConsolidate = 0;
-    mContainer = container;
     mContainer.setShowFPS(true);
-    //mContainer.setClearEachFrame(false);
-
   }
 
   @Override
   public void render(GameContainer container, StateBasedGame game, Graphics g)
       throws SlickException {
-    //g.setBackground(skyColor);
     mGame.mWorld.render(container, g, mAnimFrame);
+    
     g.setColor(Color.white);
     g.drawString("" + mGameTime + (mPaused ? " PAUSED" : ""), 10, 25);
     g.drawString("Z = " + mGame.mWorld.getViewZ(), 10, 40);
     g.drawString("Count = " + Terrain.count, 10, 55);
-    if(World.oldRender) g.drawString(">>OLD RENDERER<<", 10, 70);
   }
 
   @Override
   public void update(GameContainer container, StateBasedGame game, int delta)
       throws SlickException {
-    int move_delta = delta / 14;
+    int move_delta = delta / MOVEMENT_SCALE ;
+    
     mRenderTime +=delta;
-    mMovementTimeout -= delta;
+    mVerticalTimeout -= delta;
     switch (mMovement & ~(UP | DOWN)) {
     case NORTH:
       mGame.mWorld.adjustView(-move_delta, move_delta, 0);
@@ -88,7 +85,7 @@ public class MainState extends BasicGameState {
       break;
     case EAST:
       mGame.mWorld.adjustView(move_delta, move_delta, 0);
-      break;
+      break;    
     case SOUTH | EAST:
       mGame.mWorld.adjustView(move_delta, 0, 0);
       break;
@@ -105,19 +102,21 @@ public class MainState extends BasicGameState {
       mGame.mWorld.adjustView(-move_delta, 0, 0);
     }
 
-    if ((mMovement & UP) == UP && mMovementTimeout <= 0) {
+    if ((mMovement & UP) == UP && mVerticalTimeout <= 0) {
       mGame.mWorld.adjustView(0, 0, 1);
-      mMovementTimeout  = VERTICAL_MOVEMENT_INTERVAL;
+      mVerticalTimeout  = VERTICAL_MOVEMENT_INTERVAL;
     }
-    else if ((mMovement & DOWN) == DOWN  && mMovementTimeout <= 0) {
+    
+    else if ((mMovement & DOWN) == DOWN  && mVerticalTimeout <= 0) {
       mGame.mWorld.adjustView(0, 0, -1);
-      mMovementTimeout  = VERTICAL_MOVEMENT_INTERVAL;
+      mVerticalTimeout  = VERTICAL_MOVEMENT_INTERVAL;
     }
-    if(mRenderTime - mLastAnimTick > ANIM_INTERVAL) {
+    
+    if(mRenderTime - mLastAnim > ANIM_INTERVAL) {
       mAnimFrame = !mAnimFrame;
-      mLastAnimTick = mRenderTime;
-      //System.out.println("Animation >>TICK<<");
+      mLastAnim = mRenderTime;
     }
+    
     if(mRenderTime - mLastConsolidate > CONSOLIDATE_INTERVAL) {
       mGame.mWorld.getTerrain().consolidateDown();
       mLastConsolidate = mRenderTime;
@@ -209,33 +208,17 @@ public class MainState extends BasicGameState {
     	else
     		World.setDepthLimit(World.getDepthLimit()+1);
     	break;
-    case Input.KEY_X:
-      mSlow = !mSlow;
-      if(mSlow) mContainer.setTargetFrameRate(1);
-      else mContainer.setTargetFrameRate(-1);
-      break;
-    case Input.KEY_Z:
-      World.oldRender = !World.oldRender;
-      break;
     }
   }
 
   @Override
   public void mousePressed(int button, int x, int y) {
-    // TODO Auto-generated method stub
-    System.out.printf("Mouse clicked @ (%d,%d)\n",x,y);
-    Coord w = mGame.mWorld.screenToWorld(x,y);
-    System.out.printf("World coords (%d,%d,%d)\n",(int)w.x,(int)w.y,(int)w.z);
-    
-    super.mousePressed(button, x, y);
   }
 
   @Override
   public void mouseMoved(int oldx, int oldy, int newx, int newy) {
     // TODO Auto-generated method stub
-    mGame.mWorld.screenToWorld(newx,newy);
-    super.mouseMoved(oldx, oldy, newx, newy);
+    
+    mGame.mWorld.setCursorPos(mGame.mWorld.screenToWorld(newx,newy));
   }
-  
-  
 }

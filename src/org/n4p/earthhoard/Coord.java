@@ -1,9 +1,9 @@
 package org.n4p.earthhoard;
 
 public class Coord {
-  public double x, y, z;
+  public int x, y, z;
   
-  public Coord(double x, double y, double z) {
+  public Coord(int x, int y, int z) {
     this.x = x;
     this.y = y;
     this.z = z;
@@ -17,6 +17,6 @@ public class Coord {
   
   @Override
   public String toString() {
-    return(String.format("(%f,%f,%f)", x,y,z));
+    return(String.format("(%d,%d,%d)", x,y,z));
   }
 }

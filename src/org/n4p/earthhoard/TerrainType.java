@@ -14,8 +14,8 @@ public class TerrainType {
   public static final int WATER = 4;
   public static final int GRASS = 5;
 
-  public static final int F_NO_RENDER_ABOVE = 1;
-  public static final int F_NO_OCCLUDE = 2;
+  public static final int NO_RENDER_ABOVE = 1;
+  public static final int NO_OCCLUDE = 2;
 
   private static TreeMap<Integer, TerrainType> mTerrainTypes = new TreeMap<Integer, TerrainType>();
   private int mFlags;
@@ -38,17 +38,22 @@ public class TerrainType {
   public static void init() {
     try {
       TerrainType.add(NONE, new TerrainType("None", 0, null));
-      TerrainType.add(AIR, new TerrainType("Air", F_NO_OCCLUDE, null));
-      TerrainType.add(ROCK, new TerrainType("Rock", F_NO_RENDER_ABOVE,
-          new Image("gfx/terrain/rock.png", Color.magenta)));
-      TerrainType.add(DIRT, new TerrainType("Dirt", F_NO_RENDER_ABOVE,
-          new Image("gfx/terrain/dirt.png", Color.magenta)));
+
+      TerrainType.add(AIR, new TerrainType("Air", NO_OCCLUDE, null));
+
+      TerrainType.add(ROCK, new TerrainType("Rock", 0, new Image(
+          "gfx/terrain/rock.png", Color.magenta)));
+
+      TerrainType.add(DIRT, new TerrainType("Dirt", 0, new Image(
+          "gfx/terrain/dirt.png", Color.magenta)));
+
       TerrainType.add(WATER, new TerrainType("Water", 0, new Image(
-          "gfx/terrain/water.png", Color.magenta), new Image("gfx/terrain/water2.png",
-          Color.magenta)));
-      TerrainType.add(GRASS, new TerrainType("Grass", F_NO_RENDER_ABOVE,
-          new Image("gfx/terrain/grass.png", Color.magenta), new Image(
-              "gfx/terrain/grass2.png", Color.magenta)));
+          "gfx/terrain/water.png", Color.magenta), new Image(
+          "gfx/terrain/water2.png", Color.magenta)));
+
+      TerrainType.add(GRASS, new TerrainType("Grass", 0, new Image(
+          "gfx/terrain/grass.png", Color.magenta), new Image(
+          "gfx/terrain/grass2.png", Color.magenta)));
     } catch (SlickException e) {
       e.printStackTrace();
     }
@@ -67,8 +72,8 @@ public class TerrainType {
     return (mID);
   }
 
-  public Image getImage(boolean frame) {
-    return (frame ? mImage : mImage2);
+  public Image getImage(boolean flip) {
+    return (flip ? mImage2 : mImage);
   }
 
   public int getFlags() {

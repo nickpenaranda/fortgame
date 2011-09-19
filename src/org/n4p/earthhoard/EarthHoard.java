@@ -9,7 +9,7 @@ import org.newdawn.slick.state.StateBasedGame;
 
 public class EarthHoard extends StateBasedGame {
   World mWorld;
-  Random mRandom = new Random();
+  public static final Random r = new Random();
 
   public EarthHoard() {
     super("EarthHoard");
@@ -30,5 +30,9 @@ public class EarthHoard extends StateBasedGame {
   @Override
   public void initStatesList(GameContainer container) throws SlickException {
     addState(new MainState());
+  }
+  
+  public static int rInt(int min, int max) {
+    return (min + r.nextInt(max - min - 1));
   }
 }

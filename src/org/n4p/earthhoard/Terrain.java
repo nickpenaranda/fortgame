@@ -261,7 +261,7 @@ public class Terrain {
     if (id != children[7].mType.getID() ||
         visibility != children[7].getVisibility())
       return (false);
-    for (int i = 0; i < 8; i++)
+    for (int i = 0; i < 8; ++i)
       if (!children[i].isLeaf || children[i].mType.getID() != id ||
           children[i].getVisibility() != visibility)
         return (false);
@@ -306,7 +306,7 @@ public class Terrain {
 
     if (x > this.x + size || x < this.x || y > this.y + size || y < this.y
         || z > this.z + size || z < this.z) {
-      System.out.printf("(%d,%d,%d) out of bonds for %s", x, y, z, this);
+      System.out.printf("(%d,%d,%d) out of bonds for %s\n", x, y, z, this);
       return; // If out of bounds, do nothing
     }
 
@@ -367,8 +367,8 @@ public class Terrain {
    | getTypeAt(x, y + 1, z).getFlags()
    | getTypeAt(x, y - 1, z).getFlags()
    | getTypeAt(x, y, z + 1).getFlags()
-   | getTypeAt(x, y, z - 1).getFlags()) & TerrainType.F_NO_OCCLUDE) ==
-   TerrainType.F_NO_OCCLUDE ? Visibility.VISIBLE
+   | getTypeAt(x, y, z - 1).getFlags()) & TerrainType.NO_OCCLUDE) ==
+   TerrainType.NO_OCCLUDE ? Visibility.VISIBLE
    : Visibility.HIDDEN,x,y,z);
       
    return (t.getVisibility() == Visibility.VISIBLE ? true : false);
