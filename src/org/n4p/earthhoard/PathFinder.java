@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 
 public class PathFinder {
+  public static final double H_WEIGHT = 2.5;
   private static ArrayList<Node> open;
   private static ArrayList<Node> closed;
   private static World mWorld;
@@ -127,7 +128,7 @@ public class PathFinder {
 
     public int calcH() {
       int dx = mEnd.x - mLoc.x, dy = mEnd.y - mLoc.y, dz = mEnd.z - mLoc.z;
-      return ((int) (Math.sqrt(dx * dx + dy * dy + dz * dz) * 100 * 2));
+      return ((int) (Math.sqrt(dx * dx + dy * dy + dz * dz) * 100 * H_WEIGHT));
     }
 
     public int calcG() {
