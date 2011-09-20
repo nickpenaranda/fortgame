@@ -3,9 +3,11 @@ package org.n4p.mountainking;
 import java.util.ArrayList;
 
 import org.n4p.mountainking.items.*;
+import org.n4p.mountainking.units.*;
 import org.n4p.mountainking.terrain.Terrain;
 import org.n4p.mountainking.terrain.Terrain.TerrainNode;
 import org.n4p.mountainking.terrain.TerrainType;
+import org.n4p.mountainking.units.Unit;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
@@ -13,31 +15,38 @@ import org.newdawn.slick.Image;
 import org.newdawn.slick.SlickException;
 
 public class World {
+  private static class WorldLoader {
+    public static final World instance = new World();
+  }
+  
+  public static World getInstance() {
+    return WorldLoader.instance;
+  }
+  
   private Terrain mTerrain;
-
+  private ArrayList<Unit> mUnitList;
+  
+  private Player mPlayer;
+  
   private Coord viewPos = new Coord(0, 0, 0);
   private Coord cursorPos = new Coord(0, 0, 0);
-  private StartMarker pathStart;
-  private EndMarker pathEnd;
-  private ArrayList<PathMarker> pathMarkers;
-  
-  
-  private static int adjust_x = -31;
-  private static int adjust_y = 11;
+  private final int adjust_x = -31;
+  private final int adjust_y = 11;
 
-  private static int heightLimit = 1;
-  private static int depthLimit = 6;
+  private final int heightLimit = 1;
+  private final int depthLimit = 6;
 
   private Image activeGrid, reticuleSelect;
 
-  public static final int worldSize = 128;
+  public final int worldSize = 128;
 
-  private static final Color depthFilter[] = { new Color(32, 32, 32),
+  private final Color depthFilter[] = { new Color(32, 32, 32),
       new Color(64, 64, 64), new Color(96, 96, 96), new Color(128, 128, 128),
       new Color(160, 160, 160), new Color(192, 192, 192) };
 
-  public World() {
+  private World() {
     mTerrain = new Terrain(worldSize);
+    mUnitList = new ArrayList<Unit>();
   }
 
   public void init() {
@@ -80,7 +89,6 @@ public class World {
     }
     mTerrain.doConsolidate();
     
-    
     // Fill with water
     int waterLevel = MountainKing.r.nextInt(8) - 12;
     for (int x = -worldSize / 2; x < worldSize / 2; ++x) {
@@ -108,6 +116,7 @@ public class World {
 
     	}
     }
+    mTerrain.doConsolidate();
     
     // Seed grass on dirt
     for(int n=0;n<30;n++) {
@@ -125,10 +134,17 @@ public class World {
     		getTerrain().setBlock(c.x, c.y, c.z-1, TerrainType.get(TerrainType.GRASS));
     	}
     }
+    mTerrain.doConsolidate();
     
-    pathStart = null;
-    pathEnd = null;
-    pathMarkers = null;
+    
+    // Place player
+    mPlayer = new Player(getSurfacePoint());
+    
+    // Place some friendly snakes
+    for(int i=0;i<10;i++) {
+      new Snake(getSurfacePoint());
+    }
+    centerAt(mPlayer.getLocation());
   }
 
   private float mean(float a, float b) {
@@ -244,11 +260,19 @@ public class World {
               }
             }
             
-            // Draw fixtures
-            ArrayList<AbstractItem> items = t[z].getItems();
+            // Draw items
+            ArrayList<Item> items = t[z].getItems();
             if(items != null && !items.isEmpty()) {
-              for(AbstractItem i:items) {
+              for(Item i:items) {
                 g.drawImage(i.getWorldAppearance(mAnimFrame), x_off + (x << 5),y_off_z - 16,color);
+              }
+            }
+            
+            // Draw units
+            ArrayList<Unit> units = t[z].getUnits();
+            if(units != null && !units.isEmpty()) {
+              for(Unit u:units) {
+                g.drawImage(u.getImage(), x_off + (x << 5),y_off_z - 4,color);
               }
             }
           }
@@ -266,26 +290,6 @@ public class World {
   public int getViewZ() {
     // TODO Auto-generated method stub
     return viewPos.z;
-  }
-
-  public static int getHeightLimit() {
-    return heightLimit;
-  }
-
-  public static int getDepthLimit() {
-    return depthLimit;
-  }
-
-  public static void setHeightLimit(int heightLimit) {
-    if (heightLimit < 0)
-      return;
-    World.heightLimit = heightLimit;
-  }
-
-  public static void setDepthLimit(int depthLimit) {
-    if (depthLimit < 0 || depthLimit > 6)
-      return;
-    World.depthLimit = depthLimit;
   }
 
   public void setCursorPos(int x, int y, int z) {
@@ -320,57 +324,18 @@ public class World {
   }
   
   public boolean isTraversible(Coord c) {
-    return(
+    
+    return(isInBounds(c) && isInBounds(c.move(0,0,-1)) && isInBounds(c.move(0,0,1)) &&
         (mTerrain.getAt(c.move(0,0,-1)).getType().getFlags() & TerrainType.SOLID) == TerrainType.SOLID &&
         (mTerrain.getAt(c).getType().getFlags() & TerrainType.CAN_TRAVEL) == TerrainType.CAN_TRAVEL &&
         (mTerrain.getAt(c.move(0,0,1)).getType().getFlags() & TerrainType.CAN_TRAVEL) == TerrainType.CAN_TRAVEL
     );
   }
   
-  public static boolean isInBounds(Coord c) {
+  public boolean isInBounds(Coord c) {
     return(c.x >= -worldSize/2 && c.x < worldSize/2 &&
            c.y >= -worldSize/2 && c.y < worldSize/2 &&
            c.z >= -worldSize/2 && c.z < worldSize/2);
-  }
-
-  public void setPathStart() {
-    if(!isInBounds(cursorPos) || !isTraversible(cursorPos)) return;
-    if(pathStart != null) {
-      pathStart.destroy();
-    }
-    TerrainNode t = mTerrain.getBlockAt(cursorPos);
-    pathStart = new StartMarker(t);
-  }
-
-  public void setPathEnd() {
-    if(!isInBounds(cursorPos) || !isTraversible(cursorPos)) return;
-    if(pathEnd != null) {
-      pathEnd.destroy();
-    }
-    TerrainNode t = mTerrain.getBlockAt(cursorPos);
-    pathEnd = new EndMarker(t);
-  }
-
-  public void findPath() {
-  	Path path = null;
-  	
-    if(pathStart != null && pathEnd != null) {
-      if(pathMarkers != null) {
-        for(PathMarker p:pathMarkers) {
-          p.destroy();
-        }
-        pathMarkers.clear();
-      }
-      path = PathFinder.findPath(pathStart.getOwner().getPosition(),pathEnd.getOwner().getPosition());
-    }
-    
-    if(path != null) {
-    	pathMarkers = new ArrayList<PathMarker>();
-      for(Coord c:path) {
-      	TerrainNode t = mTerrain.getBlockAt(c);
-        pathMarkers.add(new PathMarker(t));
-      }
-    }
   }
 
   public Coord getCursorPos() {
@@ -386,5 +351,25 @@ public class World {
   	} while((mTerrain.getTypeAt(c).getFlags() & TerrainType.SOLID) != TerrainType.SOLID);
   	
   	return(c);
+  }
+  
+  public Coord getSurfacePoint() {
+    int x,y,z;
+    do {
+      x = MountainKing.r.nextInt(worldSize)-worldSize/2;
+      y = MountainKing.r.nextInt(worldSize) - worldSize/2;
+      z = findSurfaceZ(x, y);
+    } while((mTerrain.getTypeAt(x,y,z-1).getFlags() & TerrainType.SOLID) != TerrainType.SOLID);
+    
+    return(new Coord(x,y,z));
+  }
+
+  public ArrayList<Unit> getUnitList() {
+    // TODO Auto-generated method stub
+    return(mUnitList);
+  }
+  
+  public Player getPlayer() {
+    return(mPlayer);
   }
 }

@@ -6,7 +6,7 @@ import org.newdawn.slick.Color;
 import org.newdawn.slick.Image;
 import org.newdawn.slick.SlickException;
 
-public class RagnariteNode extends AbstractItem {
+public class RagnariteNode extends Item {
 	private static Appearance appearance;
 
 	public RagnariteNode(Owner parent) {

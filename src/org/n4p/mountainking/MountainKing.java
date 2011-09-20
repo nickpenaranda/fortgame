@@ -33,6 +33,6 @@ public class MountainKing extends StateBasedGame {
   }
   
   public static int rInt(int min, int max) {
-    return (min + r.nextInt(max - min - 1));
+    return (min + r.nextInt(max - min));
   }
 }

@@ -5,7 +5,7 @@ import org.newdawn.slick.Color;
 import org.newdawn.slick.Image;
 import org.newdawn.slick.SlickException;
 
-public class PathMarker extends AbstractItem {
+public class PathMarker extends Item {
 	private static Image image1, image2;
 
 	public PathMarker(Owner parent) {

@@ -2,16 +2,15 @@ package org.n4p.mountainking.items;
 
 import org.n4p.mountainking.Owner;
 import org.newdawn.slick.Image;
-import org.newdawn.slick.SlickException;
 
-public abstract class AbstractItem {
+public abstract class Item {
 	protected Owner mOwner;
 	
-	public AbstractItem(Owner owner) {
+	public Item(Owner owner) {
 		mOwner = owner;
 		try {
 			mOwner.give(this);
-		} catch(SlickException e) {
+		} catch(ItemException e) {
 			e.printStackTrace();
 		}
 		init();
@@ -20,7 +19,7 @@ public abstract class AbstractItem {
 	public void destroy() {
 		try {
 			mOwner.take(this);
-		} catch (SlickException e) {
+		} catch (ItemException e) {
 			e.printStackTrace();
 		}
 	}

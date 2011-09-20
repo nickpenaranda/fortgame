@@ -6,7 +6,7 @@ import org.newdawn.slick.Color;
 import org.newdawn.slick.Image;
 import org.newdawn.slick.SlickException;
 
-public class IronNode extends AbstractItem {
+public class IronNode extends Item {
 	private static Appearance appearance;
 
 	public IronNode(Owner parent) {

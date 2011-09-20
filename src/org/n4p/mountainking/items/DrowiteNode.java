@@ -6,7 +6,7 @@ import org.newdawn.slick.Color;
 import org.newdawn.slick.Image;
 import org.newdawn.slick.SlickException;
 
-public class DrowiteNode extends AbstractItem {
+public class DrowiteNode extends Item {
 	private static Appearance appearance;
 
 	public DrowiteNode(Owner parent) {

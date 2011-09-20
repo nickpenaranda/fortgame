@@ -6,7 +6,7 @@ import org.newdawn.slick.Color;
 import org.newdawn.slick.Image;
 import org.newdawn.slick.SlickException;
 
-public class CarniumNode extends AbstractItem {
+public class CarniumNode extends Item {
 	private static Appearance appearance;
 
 	public CarniumNode(Owner parent) {

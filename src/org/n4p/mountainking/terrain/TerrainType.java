@@ -58,8 +58,7 @@ public class TerrainType {
 
       TerrainType.add(GRASS, new TerrainType("Grass", SOLID, new Image(
           "gfx/terrain/grass.png", Color.magenta), new Image(
-          "gfx/terrain/grass2.png", Color.magenta)));
-      
+          "gfx/terrain/grass2.png", Color.magenta)));     
     } catch (SlickException e) {
       e.printStackTrace();
     }

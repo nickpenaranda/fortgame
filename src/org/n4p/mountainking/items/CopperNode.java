@@ -6,7 +6,7 @@ import org.newdawn.slick.Color;
 import org.newdawn.slick.Image;
 import org.newdawn.slick.SlickException;
 
-public class CopperNode extends AbstractItem {
+public class CopperNode extends Item {
 	private static Appearance appearance;
 
 	public CopperNode(Owner parent) {

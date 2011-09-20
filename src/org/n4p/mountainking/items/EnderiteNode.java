@@ -6,7 +6,7 @@ import org.newdawn.slick.Color;
 import org.newdawn.slick.Image;
 import org.newdawn.slick.SlickException;
 
-public class EnderiteNode extends AbstractItem {
+public class EnderiteNode extends Item {
 	private static Appearance appearance;
 
 	public EnderiteNode(Owner parent) {

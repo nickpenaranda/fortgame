@@ -6,7 +6,7 @@ import org.newdawn.slick.Color;
 import org.newdawn.slick.Image;
 import org.newdawn.slick.SlickException;
 
-public class AzraeliteNode extends AbstractItem {
+public class AzraeliteNode extends Item {
 	private static Appearance appearance;
 
 	public AzraeliteNode(Owner parent) {

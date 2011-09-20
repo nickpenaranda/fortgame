@@ -9,15 +9,10 @@ public class PathFinder {
 	private static ArrayList<Node> closed;
 	private static ArrayList<SpreadNode> openSpread = new ArrayList<SpreadNode>();
 	private static ArrayList<SpreadNode> closedSpread = new ArrayList<SpreadNode>();
-	private static World mWorld;
 
 	static {
 		open = new ArrayList<Node>();
 		closed = new ArrayList<Node>();
-	}
-
-	public static void init(World world) {
-		mWorld = world;
 	}
 	
 	public static ArrayList<Coord> spread(Coord start, int n) {
@@ -74,9 +69,9 @@ public class PathFinder {
 	private static void checkAdjacentSpread(SpreadNode n, int dx, int dy, int dz, int cost) {
 		// int cost = (int) (Math.sqrt(dx * dx + dy * dy + dz * dz) * 100);
 		Coord me = new Coord(n.getLoc().move(dx, dy, dz));
-		if (World.isInBounds(me)) { // Bound check
+		if (World.getInstance().isInBounds(me)) { // Bound check
 			SpreadNode m = new SpreadNode(me, n, cost);
-			if (!mWorld.isTraversible(me) || closedSpread.contains(m))
+			if (!World.getInstance().isTraversible(me) || closedSpread.contains(m))
 				return;
 			else {
 				int i = openSpread.indexOf(m);
@@ -150,6 +145,7 @@ public class PathFinder {
 				p.addLast(c.getLoc());
 				c = c.getParent();
 			} while (c != null && c.getParent() != null);
+	   Collections.reverse(p);
 		}
 		// System.out.printf("Pathfinder: %d attempts in %dms\n", attempts, System
 		// .nanoTime()
@@ -160,9 +156,9 @@ public class PathFinder {
 	private static void checkAdjacent(Node n, int dx, int dy, int dz, int cost) {
 		// int cost = (int) (Math.sqrt(dx * dx + dy * dy + dz * dz) * 100);
 		Coord me = new Coord(n.getLoc().move(dx, dy, dz));
-		if (World.isInBounds(me)) { // Bound check
+		if (World.getInstance().isInBounds(me)) { // Bound check
 			Node m = new Node(me, n.getEnd(), n, cost);
-			if (!mWorld.isTraversible(me) || closed.contains(m))
+			if (!World.getInstance().isTraversible(me) || closed.contains(m))
 				return;
 			else {
 				int i = open.indexOf(m);

@@ -1,7 +1,11 @@
 package org.n4p.mountainking;
 
+import java.util.ArrayList;
+
 import org.n4p.mountainking.terrain.Terrain;
 import org.n4p.mountainking.terrain.TerrainType;
+import org.n4p.mountainking.units.Unit;
+import org.n4p.mountainking.units.UnitGraphics;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
@@ -30,9 +34,7 @@ public class MainState extends BasicGameState {
   private int mRenderTime;
   
   private boolean mCtrl = false;
-	private boolean mShift = false;
-
-  static final int NORTH = 1;
+	static final int NORTH = 1;
   static final int SOUTH = 2;
   static final int WEST = 4;
   static final int EAST = 8;
@@ -51,11 +53,10 @@ public class MainState extends BasicGameState {
     mContainer = container;
 
     TerrainType.init();
+    UnitGraphics.init();
     
-    mGame.mWorld = new World();
-    PathFinder.init(mGame.mWorld);
+    mGame.mWorld = World.getInstance();
     mGame.mWorld.init();
-    
     
     mGameTime = 0;
     mLastAnim = 0;
@@ -129,7 +130,10 @@ public class MainState extends BasicGameState {
     
     if (!mPaused) {
       mGameTime += delta;
-      // Do stuff
+      ArrayList<Unit> units = mGame.mWorld.getUnitList();
+      for(Unit u:units) {
+        u.think(mGame.mWorld, delta);
+      }
     }
   }
 
@@ -138,7 +142,6 @@ public class MainState extends BasicGameState {
     switch (key) {
     case Input.KEY_LSHIFT:
     case Input.KEY_RSHIFT:
-    	mShift = false;
     	break;
     case Input.KEY_LCONTROL:
     case Input.KEY_RCONTROL:
@@ -172,7 +175,6 @@ public class MainState extends BasicGameState {
     switch (key) {
     case Input.KEY_LSHIFT:
     case Input.KEY_RSHIFT:
-    	mShift = true;
     	break;
     case Input.KEY_LCONTROL:
     case Input.KEY_RCONTROL:
@@ -201,33 +203,28 @@ public class MainState extends BasicGameState {
     case Input.KEY_P:
       mPaused = !mPaused;
       break;
-    case Input.KEY_LBRACKET:
-    	if(mShift)
-    		World.setHeightLimit(World.getHeightLimit()-1);
-    	else
-    		World.setDepthLimit(World.getDepthLimit()-1);
-    	break;
-    case Input.KEY_RBRACKET:
-    	if(mShift)
-    		World.setHeightLimit(World.getHeightLimit()+1);
-    	else
-    		World.setDepthLimit(World.getDepthLimit()+1);
-    	break;
+    case Input.KEY_SPACE:
+      mGame.mWorld.centerAt(mGame.mWorld.getPlayer().getLocation());
+      break;
     }
   }
 
   @Override
   public void mousePressed(int button, int x, int y) {
     switch(button) {
+    case 0:
+      if(mCtrl) System.out.printf("%s\n", mGame.mWorld.getTerrain().getAt(mGame.mWorld.getCursorPos()));
+      else {
+        if(!mGame.mWorld.isTraversible(mGame.mWorld.getCursorPos()))
+          return;
+        Path p = PathFinder.findPath(mGame.mWorld.getPlayer().getLocation(),
+            mGame.mWorld.getCursorPos());
+        mGame.mWorld.getPlayer().setPath(p);
+      }
+      break;
     case 1:
       // Center to location
       mGame.mWorld.centerAtCursor();
-      break;
-    case 0:
-      if(mCtrl) System.out.printf("%s\n", mGame.mWorld.getTerrain().getAt(mGame.mWorld.getCursorPos()));
-      else if(mShift) mGame.mWorld.setPathStart();
-      else mGame.mWorld.setPathEnd();
-      mGame.mWorld.findPath();
       break;
     }
   }

@@ -1,10 +1,14 @@
 package org.n4p.mountainking;
 
-import org.n4p.mountainking.items.AbstractItem;
-import org.newdawn.slick.SlickException;
+import java.util.ArrayList;
+
+import org.n4p.mountainking.items.Item;
+import org.n4p.mountainking.items.ItemException;
 
 public interface Owner {
-	public void give(AbstractItem item) throws SlickException;
-	public void take(AbstractItem item) throws SlickException;
-	public Coord getPosition();
+	public void give(Item item) throws ItemException;
+	public void take(Item item) throws ItemException;
+	
+	public ArrayList<Item> getItems();
+	public Coord getLocation();
 }

@@ -6,7 +6,7 @@ import org.newdawn.slick.Color;
 import org.newdawn.slick.Image;
 import org.newdawn.slick.SlickException;
 
-public class OdinstoneNode extends AbstractItem {
+public class OdinstoneNode extends Item {
 	private static Appearance appearance;
 
 	public OdinstoneNode(Owner parent) {
