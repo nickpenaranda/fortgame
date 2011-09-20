@@ -6,22 +6,22 @@ import org.newdawn.slick.Color;
 import org.newdawn.slick.Image;
 import org.newdawn.slick.SlickException;
 
-public class IronNode extends AbstractItem {
+public class DrowiteNode extends AbstractItem {
 	private static Appearance appearance;
 
-	public IronNode(Owner parent) {
+	public DrowiteNode(Owner parent) {
 		super(parent);
 	}
 
 	public void init() {
 		if(appearance != null) return;
 		
-		Color color = new Color(249, 208, 171);
+		Color color = new Color(62, 97, 160);
 
 		try {
 			appearance = new Appearance()
-				.addLayer(Element.WORLD1,new Image("gfx/items/common_node.png", Color.magenta), color)
-				.addLayer(Element.WORLD2,new Image("gfx/items/common_node2.png", Color.magenta), color);
+				.addLayer(Element.WORLD1,new Image("gfx/items/uncommon_node.png", Color.magenta), color)
+				.addLayer(Element.WORLD2,new Image("gfx/items/uncommon_node2.png", Color.magenta), color);
 		} catch (SlickException e) {
 			e.printStackTrace();
 		}
@@ -29,7 +29,7 @@ public class IronNode extends AbstractItem {
 
 	@Override
 	public String getLabel() {
-		return ("Iron Node");
+		return ("Drowite Node");
 	}
 
 	@Override

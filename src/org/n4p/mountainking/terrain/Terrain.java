@@ -71,6 +71,24 @@ public class Terrain {
 		// consolidateDown();
 	}
 
+	public void setSolidVolume(int x1, int y1, int z1, int x2, int y2, int z2,
+			TerrainType type) {
+		int minSize = Math.min(Math.min(Math.abs(x1 - x2), Math.abs(y1 - y2)),
+				Math.abs(z1 - z2)) / 2;
+		if (minSize < 1)
+			minSize = 1;
+
+		for (int x = x1; x <= x2; ++x) {
+			for (int y = y1; y <= y2; ++y) {
+				for (int z = z1; z <= z2; ++z) {
+					if((getAt(x,y,z).getType().getFlags() & TerrainType.SOLID) == TerrainType.SOLID)
+						mRoot.articulate(x, y, z, type, null, minSize);
+				}
+			}
+		}
+		// consolidateDown();
+	}
+
 	public TerrainNode getAt(Coord c) {
 		return (getAt(c.x, c.y, c.z));
 	}

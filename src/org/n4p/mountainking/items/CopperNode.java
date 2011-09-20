@@ -6,17 +6,17 @@ import org.newdawn.slick.Color;
 import org.newdawn.slick.Image;
 import org.newdawn.slick.SlickException;
 
-public class IronNode extends AbstractItem {
+public class CopperNode extends AbstractItem {
 	private static Appearance appearance;
 
-	public IronNode(Owner parent) {
+	public CopperNode(Owner parent) {
 		super(parent);
 	}
 
 	public void init() {
 		if(appearance != null) return;
 		
-		Color color = new Color(249, 208, 171);
+		Color color = new Color(223, 89, 30);
 
 		try {
 			appearance = new Appearance()
@@ -29,7 +29,7 @@ public class IronNode extends AbstractItem {
 
 	@Override
 	public String getLabel() {
-		return ("Iron Node");
+		return ("Copper Node");
 	}
 
 	@Override

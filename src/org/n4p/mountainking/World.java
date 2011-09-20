@@ -2,11 +2,7 @@ package org.n4p.mountainking;
 
 import java.util.ArrayList;
 
-import org.n4p.mountainking.items.AbstractItem;
-import org.n4p.mountainking.items.EndMarker;
-import org.n4p.mountainking.items.IronNode;
-import org.n4p.mountainking.items.PathMarker;
-import org.n4p.mountainking.items.StartMarker;
+import org.n4p.mountainking.items.*;
 import org.n4p.mountainking.terrain.Terrain;
 import org.n4p.mountainking.terrain.Terrain.TerrainNode;
 import org.n4p.mountainking.terrain.TerrainType;
@@ -58,9 +54,10 @@ public class World {
     // mmTerrain.setVolume(-64, -64, 0, 64, 64, 64, TerrainType
     // .get(TerrainType.AIR));
 
+    // Overall geometry heightmap
     float heightmap[][] = new float[worldSize + 1][worldSize + 1];
     heightmap[0][0] = heightmap[0][worldSize] = heightmap[worldSize][0] = heightmap[worldSize][worldSize] = 0;
-    diamond_square(heightmap, 0, 0, worldSize, worldSize);
+    diamond_square(heightmap, 0, 0, worldSize, worldSize,0.25f);
 
     for (int x = 0; x < worldSize ; ++x) {
       for (int y = 0; y < worldSize ; ++y) {
@@ -70,9 +67,22 @@ public class World {
       }
     }
     mTerrain.doConsolidate();
-
+    
+    int rock_delta = MountainKing.r.nextInt(8)-4; // Rock strata "central" z is +/- 4 from 0
+    // Re-process heightmap with lower k to create rock strata
+    diamond_square(heightmap, 0, 0, worldSize, worldSize,0.05f);
+    for (int x = 0; x < worldSize ; ++x) {
+      for (int y = 0; y < worldSize ; ++y) {
+        mTerrain.setSolidVolume(x - worldSize / 2, y - worldSize / 2,
+            -worldSize / 2, x - worldSize / 2, y - worldSize / 2, Math
+                .round(heightmap[x][y])+rock_delta, TerrainType.get(TerrainType.ROCK));
+      }
+    }
+    mTerrain.doConsolidate();
+    
+    
     // Fill with water
-    int waterLevel = MountainKing.r.nextInt(8) - 8;
+    int waterLevel = MountainKing.r.nextInt(8) - 12;
     for (int x = -worldSize / 2; x < worldSize / 2; ++x) {
       for (int y = -worldSize / 2; y < worldSize / 2; ++y) {
         int surfZ = findSurfaceZ(x, y);
@@ -86,7 +96,34 @@ public class World {
     // Test--place mineral fixtures
     for(int n=0;n<5000;++n) {
     	TerrainNode t = mTerrain.getBlockAt(getUndergroundPoint());
-    	new IronNode(t);
+    	switch(MountainKing.r.nextInt(8)) {
+    	case 0: new IronNode(t); break;
+    	case 1: new CopperNode(t); break;
+    	case 2: new DrowiteNode(t); break;
+    	case 3: new CarniumNode(t); break;
+    	case 4: new AzraeliteNode(t); break;
+    	case 5: new EnderiteNode(t); break;
+    	case 6: new RagnariteNode(t); break;
+    	case 7: new OdinstoneNode(t); break;
+
+    	}
+    }
+    
+    // Seed grass on dirt
+    for(int n=0;n<30;n++) {
+    	int surfZ = 0;
+    	int x,y;
+    	do {
+	    	x = MountainKing.r.nextInt(worldSize)-64;
+	    	y = MountainKing.r.nextInt(worldSize)-64;
+	    	surfZ = findSurfaceZ(x,y);
+    	} while(getTerrain().getAt(x,y,surfZ-1).getType().getID() != TerrainType.DIRT);
+    	
+    	getTerrain().setBlock(x, y, surfZ-1, TerrainType.get(TerrainType.GRASS));
+    	ArrayList<Coord> spread = PathFinder.spread(new Coord(x,y,surfZ), MountainKing.r.nextInt(200)+200);
+    	for(Coord c:spread) {
+    		getTerrain().setBlock(c.x, c.y, c.z-1, TerrainType.get(TerrainType.GRASS));
+    	}
     }
     
     pathStart = null;
@@ -98,9 +135,8 @@ public class World {
     return ((a + b) / 2);
   }
 
-  private void diamond_square(float[][] h, int x1, int y1, int x2, int y2) {
+  private void diamond_square(float[][] h, int x1, int y1, int x2, int y2,float k) {
     float s = x2 - x1;
-    float k = 0.25F;
     if (s > 1) {
       int mx = (x1 + x2) / 2;
       int my = (y1 + y2) / 2;
@@ -110,10 +146,10 @@ public class World {
       h[mx][y2] = mean(h[x1][y2], h[x2][y2]);
       h[x1][my] = mean(h[x1][y1], h[x1][y2]);
       h[x2][my] = mean(h[x2][y1], h[x2][y2]);
-      diamond_square(h, x1, y1, mx, my);
-      diamond_square(h, mx, my, x2, y2);
-      diamond_square(h, x1, my, mx, y2);
-      diamond_square(h, mx, y1, x2, my);
+      diamond_square(h, x1, y1, mx, my,k);
+      diamond_square(h, mx, my, x2, y2,k);
+      diamond_square(h, x1, my, mx, y2,k);
+      diamond_square(h, mx, y1, x2, my,k);
     }
   }
 

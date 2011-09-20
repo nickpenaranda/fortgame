@@ -7,6 +7,8 @@ public class PathFinder {
 	public static final double H_WEIGHT = 5;
 	private static ArrayList<Node> open;
 	private static ArrayList<Node> closed;
+	private static ArrayList<SpreadNode> openSpread = new ArrayList<SpreadNode>();
+	private static ArrayList<SpreadNode> closedSpread = new ArrayList<SpreadNode>();
 	private static World mWorld;
 
 	static {
@@ -16,6 +18,79 @@ public class PathFinder {
 
 	public static void init(World world) {
 		mWorld = world;
+	}
+	
+	public static ArrayList<Coord> spread(Coord start, int n) {
+		int i = 0;
+		ArrayList<Coord> s = null;
+		SpreadNode c = null;
+
+		if (!openSpread.isEmpty())
+			openSpread.clear();
+		if (!closedSpread.isEmpty())
+			closedSpread.clear();
+		
+		openSpread.add(new SpreadNode(start, null, 0));
+		
+		while(++i < n) {
+			Collections.sort(openSpread);
+			
+			if(openSpread.isEmpty())
+				break;
+			
+			c = openSpread.get(0);
+			
+			closedSpread.add(c);
+			openSpread.remove(c);
+
+			checkAdjacentSpread(c, -1, -1, 0, 141);
+			checkAdjacentSpread(c, 0, -1, 0, 100);
+			checkAdjacentSpread(c, 1, -1, 0, 141);
+			checkAdjacentSpread(c, -1, 0, 0, 100);
+			checkAdjacentSpread(c, 1, 0, 0, 100);
+			checkAdjacentSpread(c, -1, 1, 0, 141);
+			checkAdjacentSpread(c, 0, 1, 0, 100);
+			checkAdjacentSpread(c, 1, 1, 0, 141);
+
+			checkAdjacentSpread(c, 0, -1, 1, 224);
+			checkAdjacentSpread(c, -1, 0, 1, 224);
+			checkAdjacentSpread(c, 1, 0, 1, 224);
+			checkAdjacentSpread(c, 0, 1, 1, 224);
+
+			checkAdjacentSpread(c, 0, -1, -1, 141);
+			checkAdjacentSpread(c, -1, 0, -1, 141);
+			checkAdjacentSpread(c, 1, 0, -1, 141);
+			checkAdjacentSpread(c, 0, 1, -1, 141);
+		}
+		
+		s = new ArrayList<Coord>();
+		int l=closedSpread.size();
+		for(int j=0;j<l;++j) {
+			s.add(closedSpread.get(j).getLoc());
+		}
+		return(s);
+	}
+
+	private static void checkAdjacentSpread(SpreadNode n, int dx, int dy, int dz, int cost) {
+		// int cost = (int) (Math.sqrt(dx * dx + dy * dy + dz * dz) * 100);
+		Coord me = new Coord(n.getLoc().move(dx, dy, dz));
+		if (World.isInBounds(me)) { // Bound check
+			SpreadNode m = new SpreadNode(me, n, cost);
+			if (!mWorld.isTraversible(me) || closedSpread.contains(m))
+				return;
+			else {
+				int i = openSpread.indexOf(m);
+				if (i == -1) {
+					openSpread.add(m);
+				} else {
+					SpreadNode o = openSpread.get(i);
+					if (o.projG(n, cost) < o.getG()) {
+						o.setParent(n, cost);
+						Collections.sort(openSpread);
+					}
+				}
+			}
+		}
 	}
 
 	public static Path findPath(Coord start, Coord end) {
@@ -104,12 +179,22 @@ public class PathFinder {
 		}
 	}
 
-	private static class Node implements Comparable<Node> {
-		private Coord mLoc, mEnd;
-		private Node mParent;
-		private int mCostToParent;
+	private static class SpreadNode extends Node {
+		public SpreadNode(Coord loc, Node parent, int costToParent) {
+			super(loc, null, parent, costToParent);
+		}
 
-		private int F = 0, G = 0, H = 0;
+		public int calcH() {
+			return(0);
+		}
+	}
+	
+	private static class Node implements Comparable<Node> {
+		protected Coord mLoc, mEnd;
+		protected Node mParent;
+		protected int mCostToParent;
+
+		protected int F = 0, G = 0, H = 0;
 
 		public Node(Coord loc, Coord end, Node parent, int costToParent) {
 			mLoc = loc;

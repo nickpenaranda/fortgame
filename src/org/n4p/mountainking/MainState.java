@@ -53,9 +53,9 @@ public class MainState extends BasicGameState {
     TerrainType.init();
     
     mGame.mWorld = new World();
+    PathFinder.init(mGame.mWorld);
     mGame.mWorld.init();
     
-    PathFinder.init(mGame.mWorld);
     
     mGameTime = 0;
     mLastAnim = 0;
