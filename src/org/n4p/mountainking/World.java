@@ -4,6 +4,7 @@ import java.util.ArrayList;
 
 import org.n4p.mountainking.items.AbstractItem;
 import org.n4p.mountainking.items.EndMarker;
+import org.n4p.mountainking.items.IronNode;
 import org.n4p.mountainking.items.PathMarker;
 import org.n4p.mountainking.items.StartMarker;
 import org.n4p.mountainking.terrain.Terrain;
@@ -84,7 +85,8 @@ public class World {
     
     // Test--place mineral fixtures
     for(int n=0;n<5000;++n) {
-    	mTerrain.getItemsAt(getUndergroundPoint());
+    	TerrainNode t = mTerrain.getBlockAt(getUndergroundPoint());
+    	new IronNode(t);
     }
     
     pathStart = null;

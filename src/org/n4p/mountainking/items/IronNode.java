@@ -19,10 +19,9 @@ public class IronNode extends AbstractItem {
 		Color color = new Color(255, 213, 174);
 
 		try {
-			appearance = new Appearance().addLayer(Element.WORLD1,
-					new Image("gfx/items/node.png", Color.magenta), color).addLayer(
-					Element.WORLD2, new Image("gfx/items/node.png2", Color.magenta),
-					color);
+			appearance = new Appearance()
+				.addLayer(Element.WORLD2,new Image("gfx/items/node2.png", Color.magenta), color)
+				.addLayer(Element.WORLD1,new Image("gfx/items/node.png", Color.magenta), color);
 		} catch (SlickException e) {
 			e.printStackTrace();
 		}

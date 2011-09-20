@@ -32,12 +32,16 @@ public class Appearance {
 		Graphics g = null;
 		switch (element) {
 		case WORLD1:
+			if (base.getWidth() != WIDTH || base.getHeight() != HEIGHT)
+				throw new SlickException(String.format("Bad image dimensions: (%d,%d)",
+						base.getWidth(), base.getHeight()));
+			g = mImgWorld1.getGraphics();
+			break;
 		case WORLD2:
 			if (base.getWidth() != WIDTH || base.getHeight() != HEIGHT)
 				throw new SlickException(String.format("Bad image dimensions: (%d,%d)",
 						base.getWidth(), base.getHeight()));
-			g = element == Element.WORLD1 ? mImgWorld1.getGraphics() : mImgWorld2
-					.getGraphics();
+			g = mImgWorld2.getGraphics();
 			break;
 		case INV:
 			if (base.getWidth() != WIDTH_INV || base.getHeight() != HEIGHT_INV)
@@ -52,6 +56,8 @@ public class Appearance {
 			g.drawImage(base, 0, 0, filter);
 		else
 			g.drawImage(base, 0, 0, Color.white);
+		
+		g.flush();
 		return (this);
 	}
 
