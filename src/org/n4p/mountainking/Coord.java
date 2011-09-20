@@ -1,4 +1,4 @@
-package org.n4p.earthhoard;
+package org.n4p.mountainking;
 
 public class Coord {
   public int x, y, z;

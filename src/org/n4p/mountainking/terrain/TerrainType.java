@@ -1,4 +1,4 @@
-package org.n4p.earthhoard.terrain;
+package org.n4p.mountainking.terrain;
 
 import java.util.TreeMap;
 

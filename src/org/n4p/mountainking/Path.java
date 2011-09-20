@@ -1,4 +1,4 @@
-package org.n4p.earthhoard;
+package org.n4p.mountainking;
 
 import java.util.LinkedList;
 

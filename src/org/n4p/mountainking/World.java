@@ -1,10 +1,14 @@
-package org.n4p.earthhoard;
+package org.n4p.mountainking;
 
 import java.util.ArrayList;
 
-import org.n4p.earthhoard.fixtures.Fixture;
-import org.n4p.earthhoard.terrain.Terrain;
-import org.n4p.earthhoard.terrain.TerrainType;
+import org.n4p.mountainking.items.AbstractItem;
+import org.n4p.mountainking.items.EndMarker;
+import org.n4p.mountainking.items.PathMarker;
+import org.n4p.mountainking.items.StartMarker;
+import org.n4p.mountainking.terrain.Terrain;
+import org.n4p.mountainking.terrain.Terrain.TerrainNode;
+import org.n4p.mountainking.terrain.TerrainType;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
@@ -16,8 +20,10 @@ public class World {
 
   private Coord viewPos = new Coord(0, 0, 0);
   private Coord cursorPos = new Coord(0, 0, 0);
-  private Coord startPathPos = null, endPathPos = null;
-  private Path mPath = null;
+  private StartMarker pathStart;
+  private EndMarker pathEnd;
+  private ArrayList<PathMarker> pathMarkers;
+  
   
   private static int adjust_x = -31;
   private static int adjust_y = 11;
@@ -34,8 +40,7 @@ public class World {
       new Color(160, 160, 160), new Color(192, 192, 192) };
 
   public World() {
-    mTerrain = new Terrain(null, -worldSize / 2, -worldSize / 2,
-        -worldSize / 2, worldSize, TerrainType.get(TerrainType.AIR), null);
+    mTerrain = new Terrain(worldSize);
   }
 
   public void init() {
@@ -49,7 +54,7 @@ public class World {
 
     System.out.println("Initializing world...");
 
-    // mTerrain.setVolume(-64, -64, 0, 64, 64, 64, TerrainType
+    // mmTerrain.setVolume(-64, -64, 0, 64, 64, 64, TerrainType
     // .get(TerrainType.AIR));
 
     float heightmap[][] = new float[worldSize + 1][worldSize + 1];
@@ -63,10 +68,10 @@ public class World {
                 .round(heightmap[x][y]), TerrainType.get(TerrainType.DIRT));
       }
     }
-    mTerrain.consolidateDown();
+    mTerrain.doConsolidate();
 
     // Fill with water
-    int waterLevel = EarthHoard.r.nextInt(8) - 8;
+    int waterLevel = MountainKing.r.nextInt(8) - 8;
     for (int x = -worldSize / 2; x < worldSize / 2; ++x) {
       for (int y = -worldSize / 2; y < worldSize / 2; ++y) {
         int surfZ = findSurfaceZ(x, y);
@@ -75,10 +80,16 @@ public class World {
               .get(TerrainType.WATER));
       }
     }
-    mTerrain.consolidateDown();
+    mTerrain.doConsolidate();
     
-    // TEST
-//    mTerrain.setBlock(64, 64,1,TerrainType.get(TerrainType.GRASS));
+    // Test--place mineral fixtures
+    for(int n=0;n<5000;++n) {
+    	mTerrain.getItemsAt(getUndergroundPoint());
+    }
+    
+    pathStart = null;
+    pathEnd = null;
+    pathMarkers = null;
   }
 
   private float mean(float a, float b) {
@@ -92,7 +103,7 @@ public class World {
       int mx = (x1 + x2) / 2;
       int my = (y1 + y2) / 2;
       float center = (h[x1][y1] + h[x2][y1] + h[x1][y2] + h[x2][y2]) / 4;
-      h[mx][my] = (float) (center + EarthHoard.r.nextGaussian() * (s / 2) * k);
+      h[mx][my] = (float) (center + MountainKing.r.nextGaussian() * (s / 2) * k);
       h[mx][y1] = mean(h[x1][y1], h[x2][y1]);
       h[mx][y2] = mean(h[x1][y2], h[x2][y2]);
       h[x1][my] = mean(h[x1][y1], h[x1][y2]);
@@ -139,7 +150,7 @@ public class World {
     int sy = viewPos.y + adjust_y;
     int x_off, y_off, y_off_z;
     int tx, ty;
-    Terrain t[] = new Terrain[heightLimit + depthLimit + 1];
+    Terrain.TerrainNode t[] = new Terrain.TerrainNode[heightLimit + depthLimit + 1];
 
     for (int y = -(depthLimit << 1); y < 61 + heightLimit; ++y) {
       y_off = ((y - 3) << 3);
@@ -167,7 +178,7 @@ public class World {
               color = null;
 
             // Draw terrain
-            Image img = t[z].mType.getImage(mAnimFrame);
+            Image img = t[z].getType().getImage(mAnimFrame);
             
             if (img != null) {
               
@@ -196,10 +207,10 @@ public class World {
             }
             
             // Draw fixtures
-            ArrayList<Fixture> fixtures = t[z].getFixtures();
-            if(fixtures != null && !fixtures.isEmpty()) {
-              for(Fixture f:fixtures) {
-                g.drawImage(f.getImage(mAnimFrame), x_off + (x << 5),y_off_z - 16,color);
+            ArrayList<AbstractItem> items = t[z].getItems();
+            if(items != null && !items.isEmpty()) {
+              for(AbstractItem i:items) {
+                g.drawImage(i.getWorldAppearance(mAnimFrame), x_off + (x << 5),y_off_z - 16,color);
               }
             }
           }
@@ -272,9 +283,9 @@ public class World {
   
   public boolean isTraversible(Coord c) {
     return(
-        (getTerrain().getAt(c.move(0,0,-1)).mType.getFlags() & TerrainType.SOLID) == TerrainType.SOLID &&
-        (getTerrain().getAt(c).mType.getFlags() & TerrainType.CAN_TRAVEL) == TerrainType.CAN_TRAVEL //&&
-        //(getTerrain().getAt(c.move(0,0,1)).mType.getFlags() & TerrainType.CAN_TRAVEL) == TerrainType.CAN_TRAVEL
+        (mTerrain.getAt(c.move(0,0,-1)).getType().getFlags() & TerrainType.SOLID) == TerrainType.SOLID &&
+        (mTerrain.getAt(c).getType().getFlags() & TerrainType.CAN_TRAVEL) == TerrainType.CAN_TRAVEL &&
+        (mTerrain.getAt(c.move(0,0,1)).getType().getFlags() & TerrainType.CAN_TRAVEL) == TerrainType.CAN_TRAVEL
     );
   }
   
@@ -286,38 +297,56 @@ public class World {
 
   public void setPathStart() {
     if(!isInBounds(cursorPos) || !isTraversible(cursorPos)) return;
-    if(startPathPos != null) {
-      getTerrain().getFixturesAt(startPathPos).remove(Fixture.get(Fixture.START_MARKER));
+    if(pathStart != null) {
+      pathStart.destroy();
     }
-    getTerrain().getFixturesAt(cursorPos).add(Fixture.get(Fixture.START_MARKER));
-    startPathPos = cursorPos;
-  }
-
-  public void findPath() {
-    if(startPathPos != null && endPathPos != null) {
-      if(mPath != null)
-        for(Coord p:mPath) {
-          getTerrain().getFixturesAt(p).remove(Fixture.get(Fixture.PATH_MARKER));
-        }
-      mPath = PathFinder.findPath(startPathPos, endPathPos);
-    }
-    if(mPath != null) {
-      for(Coord p:mPath) {
-        getTerrain().getFixturesAt(p).add(Fixture.get(Fixture.PATH_MARKER));
-      }
-    }
+    TerrainNode t = mTerrain.getBlockAt(cursorPos);
+    pathStart = new StartMarker(t);
   }
 
   public void setPathEnd() {
     if(!isInBounds(cursorPos) || !isTraversible(cursorPos)) return;
-    if(endPathPos != null) {
-      getTerrain().getFixturesAt(endPathPos).remove(Fixture.get(Fixture.END_MARKER));
+    if(pathEnd != null) {
+      pathEnd.destroy();
     }
-    getTerrain().getFixturesAt(cursorPos).add(Fixture.get(Fixture.END_MARKER));
-    endPathPos = cursorPos;
+    TerrainNode t = mTerrain.getBlockAt(cursorPos);
+    pathEnd = new EndMarker(t);
+  }
+
+  public void findPath() {
+  	Path path = null;
+  	
+    if(pathStart != null && pathEnd != null) {
+      if(pathMarkers != null) {
+        for(PathMarker p:pathMarkers) {
+          p.destroy();
+        }
+        pathMarkers.clear();
+      }
+      path = PathFinder.findPath(pathStart.getOwner().getPosition(),pathEnd.getOwner().getPosition());
+    }
+    
+    if(path != null) {
+    	pathMarkers = new ArrayList<PathMarker>();
+      for(Coord c:path) {
+      	TerrainNode t = mTerrain.getBlockAt(c);
+        pathMarkers.add(new PathMarker(t));
+      }
+    }
   }
 
   public Coord getCursorPos() {
     return(cursorPos);
+  }
+  
+  public Coord getUndergroundPoint() {
+  	Coord c;
+  	do {
+  	c = new Coord(MountainKing.r.nextInt(worldSize)-worldSize/2,
+			MountainKing.r.nextInt(worldSize)-worldSize/2,
+			MountainKing.r.nextInt(worldSize)-worldSize/2);
+  	} while((mTerrain.getTypeAt(c).getFlags() & TerrainType.SOLID) != TerrainType.SOLID);
+  	
+  	return(c);
   }
 }

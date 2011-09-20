@@ -1,4 +1,4 @@
-package org.n4p.earthhoard;
+package org.n4p.mountainking;
 
 public class ScreenCoord {
   public static final int oX = 320, oY = 240;

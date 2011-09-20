@@ -1,4 +1,4 @@
-package org.n4p.earthhoard;
+package org.n4p.mountainking;
 
 import java.util.Random;
 
@@ -7,17 +7,17 @@ import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.SlickException;
 import org.newdawn.slick.state.StateBasedGame;
 
-public class EarthHoard extends StateBasedGame {
+public class MountainKing extends StateBasedGame {
   World mWorld;
   public static final Random r = new Random();
 
-  public EarthHoard() {
-    super("EarthHoard");
+  public MountainKing() {
+    super("The Mountain King");
   }
 
   public static void main(String[] args) {
     try {
-      AppGameContainer app = new AppGameContainer(new EarthHoard());
+      AppGameContainer app = new AppGameContainer(new MountainKing());
       app.setDisplayMode(640, 480, false);
       app.setMinimumLogicUpdateInterval(20);
       app.setMaximumLogicUpdateInterval(20);

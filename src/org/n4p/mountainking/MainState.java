@@ -1,8 +1,7 @@
-package org.n4p.earthhoard;
+package org.n4p.mountainking;
 
-import org.n4p.earthhoard.fixtures.Fixture;
-import org.n4p.earthhoard.terrain.Terrain;
-import org.n4p.earthhoard.terrain.TerrainType;
+import org.n4p.mountainking.terrain.Terrain;
+import org.n4p.mountainking.terrain.TerrainType;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
@@ -21,7 +20,7 @@ public class MainState extends BasicGameState {
   private boolean mAnimFrame = true;
   private static final int STATE_ID = 1;
   
-  private EarthHoard mGame;
+  private MountainKing mGame;
   private GameContainer mContainer;
   
   private boolean mPaused = false;
@@ -48,11 +47,10 @@ public class MainState extends BasicGameState {
   @Override
   public void init(GameContainer container, StateBasedGame game)
       throws SlickException {
-    mGame = (EarthHoard) game;
+    mGame = (MountainKing) game;
     mContainer = container;
 
     TerrainType.init();
-    Fixture.init();
     
     mGame.mWorld = new World();
     mGame.mWorld.init();
@@ -125,7 +123,7 @@ public class MainState extends BasicGameState {
     }
     
     if(mRenderTime - mLastConsolidate > CONSOLIDATE_INTERVAL) {
-      mGame.mWorld.getTerrain().consolidateDown();
+      mGame.mWorld.getTerrain().doConsolidate();
       mLastConsolidate = mRenderTime;
     }
     
@@ -220,7 +218,6 @@ public class MainState extends BasicGameState {
 
   @Override
   public void mousePressed(int button, int x, int y) {
-    System.out.printf("Click @ %s\n",mGame.mWorld.getCursorPos());
     switch(button) {
     case 1:
       // Center to location
