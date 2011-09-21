@@ -65,7 +65,11 @@ public class World {
 
     // Overall geometry heightmap
     float heightmap[][] = new float[worldSize + 1][worldSize + 1];
-    heightmap[0][0] = heightmap[0][worldSize] = heightmap[worldSize][0] = heightmap[worldSize][worldSize] = 0;
+    heightmap[0][0] = MountainKing.r.nextInt(16)-8;
+    heightmap[0][worldSize] = MountainKing.r.nextInt(16)-8;
+    heightmap[worldSize][0] = MountainKing.r.nextInt(16)-8;
+    heightmap[worldSize][worldSize] = MountainKing.r.nextInt(16)-8;
+    
     diamond_square(heightmap, 0, 0, worldSize, worldSize, 0.25f);
 
     for (int x = 0; x < worldSize; ++x) {
@@ -81,8 +85,8 @@ public class World {
                                                     // is +/- 4 from 0
     // Re-process heightmap with lower k to create rock strata
     diamond_square(heightmap, 0, 0, worldSize, worldSize, 0.05f);
-    for (int x = 0; x < worldSize; ++x) {
-      for (int y = 0; y < worldSize; ++y) {
+    for (int x = 0; x < worldSize ; ++x) {
+      for (int y = 0; y < worldSize ; ++y) {
         mTerrain.setSolidVolume(x - worldSize / 2, y - worldSize / 2,
             -worldSize / 2, x - worldSize / 2, y - worldSize / 2, Math
                 .round(heightmap[x][y])
