@@ -19,7 +19,7 @@ public class Snake extends Unit {
 
   @Override
   public Image getImage() {
-    return (UnitGraphics.SNAKE.getImage());
+    return (UnitGraphic.SNAKE.getImage());
   }
 
   @Override

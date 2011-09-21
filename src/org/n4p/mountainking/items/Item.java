@@ -1,9 +1,8 @@
 package org.n4p.mountainking.items;
 
 import org.n4p.mountainking.Owner;
-import org.newdawn.slick.Image;
 
-public abstract class Item {
+public abstract class Item implements ItemInterface {
 	protected Owner mOwner;
 	
 	public Item(Owner owner) {
@@ -13,7 +12,6 @@ public abstract class Item {
 		} catch(ItemException e) {
 			e.printStackTrace();
 		}
-		init();
 	}
 	
 	public void destroy() {
@@ -28,11 +26,14 @@ public abstract class Item {
 		return(mOwner);
 	}
 	
-	public abstract Image getWorldAppearance(boolean animState);
-	public abstract Image getInvAppearance();
-	
-	public abstract void init();
-	
-	public abstract String getLabel();
-	public abstract int getFlags();
+	public void setOwner(Owner newOwner) {
+	  try {
+      mOwner.take(this);
+      newOwner.give(this);
+      mOwner = newOwner;
+    } catch (ItemException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
+	}
 }

@@ -39,6 +39,6 @@ public class Player extends Unit {
 
   @Override
   public Image getImage() {
-    return(UnitGraphics.PLAYER.getImage());
+    return(UnitGraphic.PLAYER.getImage());
   }
 }

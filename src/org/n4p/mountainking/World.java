@@ -18,16 +18,16 @@ public class World {
   private static class WorldLoader {
     public static final World instance = new World();
   }
-  
+
   public static World getInstance() {
     return WorldLoader.instance;
   }
-  
+
   private Terrain mTerrain;
   private ArrayList<Unit> mUnitList;
-  
+
   private Player mPlayer;
-  
+
   private Coord viewPos = new Coord(0, 0, 0);
   private Coord cursorPos = new Coord(0, 0, 0);
   private final int adjust_x = -31;
@@ -66,29 +66,31 @@ public class World {
     // Overall geometry heightmap
     float heightmap[][] = new float[worldSize + 1][worldSize + 1];
     heightmap[0][0] = heightmap[0][worldSize] = heightmap[worldSize][0] = heightmap[worldSize][worldSize] = 0;
-    diamond_square(heightmap, 0, 0, worldSize, worldSize,0.25f);
+    diamond_square(heightmap, 0, 0, worldSize, worldSize, 0.25f);
 
-    for (int x = 0; x < worldSize ; ++x) {
-      for (int y = 0; y < worldSize ; ++y) {
+    for (int x = 0; x < worldSize; ++x) {
+      for (int y = 0; y < worldSize; ++y) {
         mTerrain.setVolume(x - worldSize / 2, y - worldSize / 2,
             -worldSize / 2, x - worldSize / 2, y - worldSize / 2, Math
                 .round(heightmap[x][y]), TerrainType.get(TerrainType.DIRT));
       }
     }
     mTerrain.doConsolidate();
-    
-    int rock_delta = MountainKing.r.nextInt(8)-4; // Rock strata "central" z is +/- 4 from 0
+
+    int rock_delta = MountainKing.r.nextInt(8) - 4; // Rock strata "central" z
+                                                    // is +/- 4 from 0
     // Re-process heightmap with lower k to create rock strata
-    diamond_square(heightmap, 0, 0, worldSize, worldSize,0.05f);
-    for (int x = 0; x < worldSize ; ++x) {
-      for (int y = 0; y < worldSize ; ++y) {
+    diamond_square(heightmap, 0, 0, worldSize, worldSize, 0.05f);
+    for (int x = 0; x < worldSize; ++x) {
+      for (int y = 0; y < worldSize; ++y) {
         mTerrain.setSolidVolume(x - worldSize / 2, y - worldSize / 2,
             -worldSize / 2, x - worldSize / 2, y - worldSize / 2, Math
-                .round(heightmap[x][y])+rock_delta, TerrainType.get(TerrainType.ROCK));
+                .round(heightmap[x][y])
+                + rock_delta, TerrainType.get(TerrainType.ROCK));
       }
     }
     mTerrain.doConsolidate();
-    
+
     // Fill with water
     int waterLevel = MountainKing.r.nextInt(8) - 12;
     for (int x = -worldSize / 2; x < worldSize / 2; ++x) {
@@ -100,48 +102,66 @@ public class World {
       }
     }
     mTerrain.doConsolidate();
-    
-    // Test--place mineral fixtures
-    for(int n=0;n<5000;++n) {
-    	TerrainNode t = mTerrain.getBlockAt(getUndergroundPoint());
-    	switch(MountainKing.r.nextInt(8)) {
-    	case 0: new IronNode(t); break;
-    	case 1: new CopperNode(t); break;
-    	case 2: new DrowiteNode(t); break;
-    	case 3: new CarniumNode(t); break;
-    	case 4: new AzraeliteNode(t); break;
-    	case 5: new EnderiteNode(t); break;
-    	case 6: new RagnariteNode(t); break;
-    	case 7: new OdinstoneNode(t); break;
 
-    	}
+    // Test--place mineral fixtures
+    for (int n = 0; n < 5000; ++n) {
+      TerrainNode t = mTerrain.getBlockAt(getUndergroundPoint());
+      switch (MountainKing.r.nextInt(8)) {
+      case 0:
+        new EmbeddedIron(t);
+        break;
+      case 1:
+        new EmbeddedCopper(t);
+        break;
+      case 2:
+        new EmbeddedDrowite(t);
+        break;
+      case 3:
+        new EmbeddedCarnium(t);
+        break;
+      case 4:
+        new EmbeddedAzraelite(t);
+        break;
+      case 5:
+        new EmbeddedEnderite(t);
+        break;
+      case 6:
+        new EmbeddedRagnarite(t);
+        break;
+      case 7:
+        new EmbeddedOdinstone(t);
+        break;
+
+      }
     }
     mTerrain.doConsolidate();
-    
+
     // Seed grass on dirt
-    for(int n=0;n<30;n++) {
-    	int surfZ = 0;
-    	int x,y;
-    	do {
-	    	x = MountainKing.r.nextInt(worldSize)-64;
-	    	y = MountainKing.r.nextInt(worldSize)-64;
-	    	surfZ = findSurfaceZ(x,y);
-    	} while(getTerrain().getAt(x,y,surfZ-1).getType().getID() != TerrainType.DIRT);
-    	
-    	getTerrain().setBlock(x, y, surfZ-1, TerrainType.get(TerrainType.GRASS));
-    	ArrayList<Coord> spread = PathFinder.spread(new Coord(x,y,surfZ), MountainKing.r.nextInt(200)+200);
-    	for(Coord c:spread) {
-    		getTerrain().setBlock(c.x, c.y, c.z-1, TerrainType.get(TerrainType.GRASS));
-    	}
+    for (int n = 0; n < 30; n++) {
+      int surfZ = 0;
+      int x, y;
+      do {
+        x = MountainKing.r.nextInt(worldSize) - 64;
+        y = MountainKing.r.nextInt(worldSize) - 64;
+        surfZ = findSurfaceZ(x, y);
+      } while (getTerrain().getAt(x, y, surfZ - 1).getType().getID() != TerrainType.DIRT);
+
+      getTerrain()
+          .setBlock(x, y, surfZ - 1, TerrainType.get(TerrainType.GRASS));
+      ArrayList<Coord> spread = PathFinder.spread(new Coord(x, y, surfZ),
+          MountainKing.r.nextInt(200) + 200);
+      for (Coord c : spread) {
+        getTerrain().setBlock(c.x, c.y, c.z - 1,
+            TerrainType.get(TerrainType.GRASS));
+      }
     }
     mTerrain.doConsolidate();
-    
-    
+
     // Place player
-    mPlayer = new Player(getSurfacePoint());
-    
+    mPlayer = new Player(getSurfacePoint().move(0, 0, 1));
+
     // Place some friendly snakes
-    for(int i=0;i<10;i++) {
+    for (int i = 0; i < 10; i++) {
       new Snake(getSurfacePoint());
     }
     centerAt(mPlayer.getLocation());
@@ -151,7 +171,8 @@ public class World {
     return ((a + b) / 2);
   }
 
-  private void diamond_square(float[][] h, int x1, int y1, int x2, int y2,float k) {
+  private void diamond_square(float[][] h, int x1, int y1, int x2, int y2,
+      float k) {
     float s = x2 - x1;
     if (s > 1) {
       int mx = (x1 + x2) / 2;
@@ -162,10 +183,10 @@ public class World {
       h[mx][y2] = mean(h[x1][y2], h[x2][y2]);
       h[x1][my] = mean(h[x1][y1], h[x1][y2]);
       h[x2][my] = mean(h[x2][y1], h[x2][y2]);
-      diamond_square(h, x1, y1, mx, my,k);
-      diamond_square(h, mx, my, x2, y2,k);
-      diamond_square(h, x1, my, mx, y2,k);
-      diamond_square(h, mx, y1, x2, my,k);
+      diamond_square(h, x1, y1, mx, my, k);
+      diamond_square(h, mx, my, x2, y2, k);
+      diamond_square(h, x1, my, mx, y2, k);
+      diamond_square(h, mx, y1, x2, my, k);
     }
   }
 
@@ -174,7 +195,7 @@ public class World {
     TerrainType air = TerrainType.get(TerrainType.AIR);
     while (mTerrain.getTypeAt(x, y, z) == air)
       z--;
-    if(z < -64) 
+    if (z < -64)
       z = -64;
     return (z);
   }
@@ -204,7 +225,8 @@ public class World {
     int sy = viewPos.y + adjust_y;
     int x_off, y_off, y_off_z;
     int tx, ty;
-    Terrain.TerrainNode t[] = new Terrain.TerrainNode[heightLimit + depthLimit + 1];
+    Terrain.TerrainNode t[] = new Terrain.TerrainNode[heightLimit + depthLimit
+        + 1];
 
     for (int y = -(depthLimit << 1); y < 61 + heightLimit; ++y) {
       y_off = ((y - 3) << 3);
@@ -219,12 +241,12 @@ public class World {
       ty = sy;
       for (int x = 0; x < 21; ++x) {
         for (int z = 0; z < depthLimit + 1 + heightLimit; ++z) {
-          
+
           t[z] = mTerrain.getAt(tx, ty, viewPos.z + z - depthLimit - 1);
-          
+
           if (t[z] != null
               && mTerrain.isVisible(tx, ty, viewPos.z + z - depthLimit)) {
-            
+
             y_off_z = y_off - ((z - 1) << 4) + (depthLimit << 4);
             if (z < depthLimit)
               color = depthFilter[z];
@@ -233,22 +255,22 @@ public class World {
 
             // Draw terrain
             Image img = t[z].getType().getImage(mAnimFrame);
-            
+
             if (img != null) {
-              
+
               if (z < depthLimit)
                 color = depthFilter[z];
               else
                 color = null;
 
               if (!(y_off_z < -32 || y_off_z > 480 + 32)) {
-                
+
                 if (z - depthLimit == 1 && tx == cursorPos.x
                     && ty == cursorPos.y)
                   g.drawImage(img, x_off + (x << 5), y_off_z, Color.yellow);
                 else
                   g.drawImage(img, x_off + (x << 5), y_off_z, color);
-                
+
                 if (z - depthLimit == 0) {
                   if (tx == cursorPos.x && ty == cursorPos.y)
                     g.drawImage(reticuleSelect, x_off + (x << 5), y_off_z,
@@ -259,20 +281,21 @@ public class World {
                 }
               }
             }
-            
+
             // Draw items
             ArrayList<Item> items = t[z].getItems();
-            if(items != null && !items.isEmpty()) {
-              for(Item i:items) {
-                g.drawImage(i.getWorldAppearance(mAnimFrame), x_off + (x << 5),y_off_z - 16,color);
+            if (items != null && !items.isEmpty()) {
+              for (Item i : items) {
+                g.drawImage(i.getWorldAppearance(mAnimFrame), x_off + (x << 5),
+                    y_off_z, color);
               }
             }
-            
+
             // Draw units
             ArrayList<Unit> units = t[z].getUnits();
-            if(units != null && !units.isEmpty()) {
-              for(Unit u:units) {
-                g.drawImage(u.getImage(), x_off + (x << 5),y_off_z - 4,color);
+            if (units != null && !units.isEmpty()) {
+              for (Unit u : units) {
+                g.drawImage(u.getImage(), x_off + (x << 5), y_off_z - 4, color);
               }
             }
           }
@@ -310,66 +333,68 @@ public class World {
 
     return new Coord(wx, wy, viewPos.z);
   }
-  
+
   public void centerAt(Coord c) {
     viewPos = c;
   }
-  
-  public void centerAt(int x,int y,int z) {
-    viewPos.setTo(x,y,z);
+
+  public void centerAt(int x, int y, int z) {
+    viewPos.setTo(x, y, z);
   }
 
   public void centerAtCursor() {
     centerAt(cursorPos);
   }
-  
+
   public boolean isTraversible(Coord c) {
-    
-    return(isInBounds(c) && isInBounds(c.move(0,0,-1)) && isInBounds(c.move(0,0,1)) &&
-        (mTerrain.getAt(c.move(0,0,-1)).getType().getFlags() & TerrainType.SOLID) == TerrainType.SOLID &&
-        (mTerrain.getAt(c).getType().getFlags() & TerrainType.CAN_TRAVEL) == TerrainType.CAN_TRAVEL &&
-        (mTerrain.getAt(c.move(0,0,1)).getType().getFlags() & TerrainType.CAN_TRAVEL) == TerrainType.CAN_TRAVEL
-    );
+
+    return (isInBounds(c)
+        && isInBounds(c.move(0, 0, -1))
+        && isInBounds(c.move(0, 0, 1))
+        && (mTerrain.getAt(c.move(0, 0, -1)).getType().getFlags() & TerrainType.SOLID) == TerrainType.SOLID
+        && (mTerrain.getAt(c).getType().getFlags() & TerrainType.CAN_TRAVEL) == TerrainType.CAN_TRAVEL && (mTerrain
+        .getAt(c.move(0, 0, 1)).getType().getFlags() & TerrainType.CAN_TRAVEL) == TerrainType.CAN_TRAVEL);
   }
-  
+
   public boolean isInBounds(Coord c) {
-    return(c.x >= -worldSize/2 && c.x < worldSize/2 &&
-           c.y >= -worldSize/2 && c.y < worldSize/2 &&
-           c.z >= -worldSize/2 && c.z < worldSize/2);
+    return (c.x >= -worldSize / 2 && c.x < worldSize / 2
+        && c.y >= -worldSize / 2 && c.y < worldSize / 2
+        && c.z >= -worldSize / 2 && c.z < worldSize / 2);
   }
 
   public Coord getCursorPos() {
-    return(cursorPos);
+    return (cursorPos);
   }
-  
+
   public Coord getUndergroundPoint() {
-  	Coord c;
-  	do {
-  	c = new Coord(MountainKing.r.nextInt(worldSize)-worldSize/2,
-			MountainKing.r.nextInt(worldSize)-worldSize/2,
-			MountainKing.r.nextInt(worldSize)-worldSize/2);
-  	} while((mTerrain.getTypeAt(c).getFlags() & TerrainType.SOLID) != TerrainType.SOLID);
-  	
-  	return(c);
-  }
-  
-  public Coord getSurfacePoint() {
-    int x,y,z;
+    Coord c;
     do {
-      x = MountainKing.r.nextInt(worldSize)-worldSize/2;
-      y = MountainKing.r.nextInt(worldSize) - worldSize/2;
+      c = new Coord(MountainKing.r.nextInt(worldSize) - worldSize / 2,
+          MountainKing.r.nextInt(worldSize) - worldSize / 2, MountainKing.r
+              .nextInt(worldSize)
+              - worldSize / 2);
+    } while ((mTerrain.getTypeAt(c).getFlags() & TerrainType.SOLID) != TerrainType.SOLID);
+
+    return (c);
+  }
+
+  public Coord getSurfacePoint() {
+    int x, y, z;
+    do {
+      x = MountainKing.r.nextInt(worldSize) - worldSize / 2;
+      y = MountainKing.r.nextInt(worldSize) - worldSize / 2;
       z = findSurfaceZ(x, y);
-    } while((mTerrain.getTypeAt(x,y,z-1).getFlags() & TerrainType.SOLID) != TerrainType.SOLID);
-    
-    return(new Coord(x,y,z));
+    } while ((mTerrain.getTypeAt(x, y, z - 1).getFlags() & TerrainType.SOLID) != TerrainType.SOLID);
+
+    return (new Coord(x, y, z + 1));
   }
 
   public ArrayList<Unit> getUnitList() {
     // TODO Auto-generated method stub
-    return(mUnitList);
+    return (mUnitList);
   }
-  
+
   public Player getPlayer() {
-    return(mPlayer);
+    return (mPlayer);
   }
 }

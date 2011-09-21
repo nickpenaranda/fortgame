@@ -5,14 +5,14 @@ import org.newdawn.slick.Image;
 import org.newdawn.slick.SlickException;
 import org.newdawn.slick.SpriteSheet;
 
-public enum UnitGraphics {
+public enum UnitGraphic {
   PLAYER(2,4),
   SNAKE(0,9);
   
   private Image mImage;
   private final int mIndexX, mIndexY;
   
-  UnitGraphics(int indexX,int indexY) {
+  UnitGraphic(int indexX,int indexY) {
     mIndexX = indexX;
     mIndexY = indexY;
     mImage = null;

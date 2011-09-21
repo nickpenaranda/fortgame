@@ -126,7 +126,9 @@ public class Terrain {
   }
 
   public void doConsolidate() {
+    long start = System.nanoTime() / 1000000;
     mRoot.consolidate();
+    System.out.printf("Consolidated in %dms\n",System.nanoTime() / 1000000 - start);
   }
 
   public static class TerrainNode implements Owner {

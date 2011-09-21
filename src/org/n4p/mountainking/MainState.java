@@ -2,10 +2,11 @@ package org.n4p.mountainking;
 
 import java.util.ArrayList;
 
+import org.n4p.mountainking.items.ItemGraphic;
 import org.n4p.mountainking.terrain.Terrain;
 import org.n4p.mountainking.terrain.TerrainType;
 import org.n4p.mountainking.units.Unit;
-import org.n4p.mountainking.units.UnitGraphics;
+import org.n4p.mountainking.units.UnitGraphic;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
@@ -17,7 +18,7 @@ import org.newdawn.slick.state.StateBasedGame;
 public class MainState extends BasicGameState {
   private static final long ANIM_INTERVAL = 500;
   private static final int VERTICAL_MOVEMENT_INTERVAL = 200;
-  private static final long CONSOLIDATE_INTERVAL = 1000;
+  private static final long CONSOLIDATE_INTERVAL = 5000;
   private static final int MOVEMENT_SCALE = 14;
 
   private long mGameTime, mLastAnim, mLastConsolidate;
@@ -53,7 +54,8 @@ public class MainState extends BasicGameState {
     mContainer = container;
 
     TerrainType.init();
-    UnitGraphics.init();
+    UnitGraphic.init();
+    ItemGraphic.init();
     
     mGame.mWorld = World.getInstance();
     mGame.mWorld.init();
