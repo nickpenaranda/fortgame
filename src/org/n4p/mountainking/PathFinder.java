@@ -101,7 +101,7 @@ public class PathFinder {
 
 		open.add(new Node(start, end, null, 0));
 
-		while (!pathFound && attempts++ < 1000 ) {
+		while (!pathFound && attempts++ < 4000 ) {
 			attempts++;
 			Collections.sort(open);
 

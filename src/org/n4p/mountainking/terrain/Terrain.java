@@ -4,6 +4,7 @@ import java.util.ArrayList;
 
 import org.n4p.mountainking.Coord;
 import org.n4p.mountainking.Owner;
+import org.n4p.mountainking.World;
 import org.n4p.mountainking.items.Item;
 import org.n4p.mountainking.items.ItemException;
 import org.n4p.mountainking.units.Unit;
@@ -126,9 +127,8 @@ public class Terrain {
   }
 
   public void doConsolidate() {
-    long start = System.nanoTime() / 1000000;
     mRoot.consolidate();
-    System.out.printf("Consolidated in %dms\n",System.nanoTime() / 1000000 - start);
+    //System.out.printf("Consolidated in %dms\n",System.nanoTime() / 1000000 - start);
   }
 
   public static class TerrainNode implements Owner {

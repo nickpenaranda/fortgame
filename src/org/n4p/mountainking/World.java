@@ -29,12 +29,15 @@ public class World {
   private Player mPlayer;
 
   private Coord viewPos = new Coord(0, 0, 0);
+  private Coord[] savedViews;
   private Coord cursorPos = new Coord(0, 0, 0);
   private final int adjust_x = -31;
   private final int adjust_y = 11;
 
   private final int heightLimit = 1;
   private final int depthLimit = 6;
+
+  public final int NUM_SAVED_VIEWS = 9;
 
   private Image activeGrid, reticuleSelect;
 
@@ -47,6 +50,7 @@ public class World {
   private World() {
     mTerrain = new Terrain(worldSize);
     mUnitList = new ArrayList<Unit>();
+    savedViews = new Coord[NUM_SAVED_VIEWS];
   }
 
   public void init() {
@@ -63,13 +67,14 @@ public class World {
     // mmTerrain.setVolume(-64, -64, 0, 64, 64, 64, TerrainType
     // .get(TerrainType.AIR));
 
+    System.out.println("  Generating geometry...");
     // Overall geometry heightmap
     float heightmap[][] = new float[worldSize + 1][worldSize + 1];
-    heightmap[0][0] = MountainKing.r.nextInt(16)-8;
-    heightmap[0][worldSize] = MountainKing.r.nextInt(16)-8;
-    heightmap[worldSize][0] = MountainKing.r.nextInt(16)-8;
-    heightmap[worldSize][worldSize] = MountainKing.r.nextInt(16)-8;
-    
+    heightmap[0][0] = R.getInstance().nextInt(16) - 8;
+    heightmap[0][worldSize] = R.getInstance().nextInt(16) - 8;
+    heightmap[worldSize][0] = R.getInstance().nextInt(16) - 8;
+    heightmap[worldSize][worldSize] = R.getInstance().nextInt(16) - 8;
+
     diamond_square(heightmap, 0, 0, worldSize, worldSize, 0.25f);
 
     for (int x = 0; x < worldSize; ++x) {
@@ -81,12 +86,13 @@ public class World {
     }
     mTerrain.doConsolidate();
 
-    int rock_delta = MountainKing.r.nextInt(8) - 4; // Rock strata "central" z
-                                                    // is +/- 4 from 0
+    System.out.println("  Distributing rock...");
+    int rock_delta = R.getInstance().nextInt(8) - 4; // Rock strata "central" z
+    // is +/- 4 from 0
     // Re-process heightmap with lower k to create rock strata
     diamond_square(heightmap, 0, 0, worldSize, worldSize, 0.05f);
-    for (int x = 0; x < worldSize ; ++x) {
-      for (int y = 0; y < worldSize ; ++y) {
+    for (int x = 0; x < worldSize; ++x) {
+      for (int y = 0; y < worldSize; ++y) {
         mTerrain.setSolidVolume(x - worldSize / 2, y - worldSize / 2,
             -worldSize / 2, x - worldSize / 2, y - worldSize / 2, Math
                 .round(heightmap[x][y])
@@ -95,8 +101,9 @@ public class World {
     }
     mTerrain.doConsolidate();
 
+    System.out.println("  Filling with surface water...");
     // Fill with water
-    int waterLevel = MountainKing.r.nextInt(8) - 12;
+    int waterLevel = R.getInstance().nextInt(8) - 12;
     for (int x = -worldSize / 2; x < worldSize / 2; ++x) {
       for (int y = -worldSize / 2; y < worldSize / 2; ++y) {
         int surfZ = findSurfaceZ(x, y);
@@ -110,7 +117,7 @@ public class World {
     // Test--place mineral fixtures
     for (int n = 0; n < 5000; ++n) {
       TerrainNode t = mTerrain.getBlockAt(getUndergroundPoint());
-      switch (MountainKing.r.nextInt(8)) {
+      switch (R.getInstance().nextInt(8)) {
       case 0:
         new EmbeddedIron(t);
         break;
@@ -140,20 +147,21 @@ public class World {
     }
     mTerrain.doConsolidate();
 
+    System.out.println("  Growing grass...");
     // Seed grass on dirt
     for (int n = 0; n < 30; n++) {
       int surfZ = 0;
       int x, y;
       do {
-        x = MountainKing.r.nextInt(worldSize) - 64;
-        y = MountainKing.r.nextInt(worldSize) - 64;
+        x = R.getInstance().nextInt(worldSize) - 64;
+        y = R.getInstance().nextInt(worldSize) - 64;
         surfZ = findSurfaceZ(x, y);
       } while (getTerrain().getAt(x, y, surfZ - 1).getType().getID() != TerrainType.DIRT);
 
       getTerrain()
           .setBlock(x, y, surfZ - 1, TerrainType.get(TerrainType.GRASS));
-      ArrayList<Coord> spread = PathFinder.spread(new Coord(x, y, surfZ),
-          MountainKing.r.nextInt(200) + 200);
+      ArrayList<Coord> spread = PathFinder.spread(new Coord(x, y, surfZ), R
+          .getInstance().nextInt(200) + 200);
       for (Coord c : spread) {
         getTerrain().setBlock(c.x, c.y, c.z - 1,
             TerrainType.get(TerrainType.GRASS));
@@ -161,8 +169,9 @@ public class World {
     }
     mTerrain.doConsolidate();
 
+    System.out.println("  Placing units...");
     // Place player
-    mPlayer = new Player(getSurfacePoint().move(0, 0, 1));
+    mPlayer = new Player(getSurfacePoint());
 
     // Place some friendly snakes
     for (int i = 0; i < 10; i++) {
@@ -182,7 +191,8 @@ public class World {
       int mx = (x1 + x2) / 2;
       int my = (y1 + y2) / 2;
       float center = (h[x1][y1] + h[x2][y1] + h[x1][y2] + h[x2][y2]) / 4;
-      h[mx][my] = (float) (center + MountainKing.r.nextGaussian() * (s / 2) * k);
+      h[mx][my] = (float) (center + R.getInstance().nextGaussian() * (s / 2)
+          * k);
       h[mx][y1] = mean(h[x1][y1], h[x2][y1]);
       h[mx][y2] = mean(h[x1][y2], h[x2][y2]);
       h[x1][my] = mean(h[x1][y1], h[x1][y2]);
@@ -198,7 +208,7 @@ public class World {
     int z = worldSize / 2 - 1;
     TerrainType air = TerrainType.get(TerrainType.AIR);
     while (mTerrain.getTypeAt(x, y, z) == air)
-      z--;
+      --z;
     if (z < -64)
       z = -64;
     return (z);
@@ -227,13 +237,12 @@ public class World {
     Color color;
     int sx = viewPos.x + adjust_x;
     int sy = viewPos.y + adjust_y;
-    int x_off, y_off, y_off_z;
+    int x_off, y_off, y_off_z, z_max = depthLimit + 1 + heightLimit, depthAdjust = (depthLimit << 4);
     int tx, ty;
-    Terrain.TerrainNode t[] = new Terrain.TerrainNode[heightLimit + depthLimit
-        + 1];
+    TerrainNode t;
 
     for (int y = -(depthLimit << 1); y < 61 + heightLimit; ++y) {
-      y_off = ((y - 3) << 3);
+      y_off = ((y - 5) << 3);
       if ((y & 1) == 0) {// Even row
         x_off = 0;
         ++sx;
@@ -244,65 +253,53 @@ public class World {
       tx = sx;
       ty = sy;
       for (int x = 0; x < 21; ++x) {
-        for (int z = 0; z < depthLimit + 1 + heightLimit; ++z) {
+        for (int z = 0; z < z_max; ++z) {
+          y_off_z = y_off - ((z - 1) << 4) + depthAdjust;
 
-          t[z] = mTerrain.getAt(tx, ty, viewPos.z + z - depthLimit - 1);
+          if (!isInBounds(tx, ty, viewPos.z + z - depthLimit - 1)
+              && !(y_off_z < -32 || y_off_z > 480 + 32))
+            continue;
 
-          if (t[z] != null
-              && mTerrain.isVisible(tx, ty, viewPos.z + z - depthLimit)) {
+          if (mTerrain.isVisible(tx, ty, viewPos.z + z - depthLimit)) {
+            color = z < depthLimit ? depthFilter[z] : Color.white;
 
-            y_off_z = y_off - ((z - 1) << 4) + (depthLimit << 4);
-            if (z < depthLimit)
-              color = depthFilter[z];
-            else
-              color = null;
+            t = mTerrain.getAt(tx, ty, viewPos.z + z - depthLimit);
 
             // Draw terrain
-            Image img = t[z].getType().getImage(mAnimFrame);
-
+            Image img = t.getType().getImage(mAnimFrame);
+            
             if (img != null) {
-
-              if (z < depthLimit)
-                color = depthFilter[z];
-              else
-                color = null;
-
-              if (!(y_off_z < -32 || y_off_z > 480 + 32)) {
-
-                if (z - depthLimit == 1 && tx == cursorPos.x
-                    && ty == cursorPos.y)
-                  g.drawImage(img, x_off + (x << 5), y_off_z, Color.yellow);
+              g.drawImage(img, x_off + (x << 5), y_off_z, color);
+              if(z - depthLimit == -1) {
+                if(tx == cursorPos.x && ty == cursorPos.y) 
+                  g.drawImage(reticuleSelect, x_off + (x << 5), y_off_z,
+                      Color.yellow);
                 else
-                  g.drawImage(img, x_off + (x << 5), y_off_z, color);
-
-                if (z - depthLimit == 0) {
-                  if (tx == cursorPos.x && ty == cursorPos.y)
-                    g.drawImage(reticuleSelect, x_off + (x << 5), y_off_z,
-                        Color.yellow);
-                  else
-                    g.drawImage(activeGrid, x_off + (x << 5), y_off_z,
-                        Color.white);
-                }
+                  g.drawImage(activeGrid, x_off + (x << 5), y_off_z,
+                      Color.white);
               }
             }
-
+            
             // Draw items
-            ArrayList<Item> items = t[z].getItems();
+            ArrayList<Item> items = t.getItems();
             if (items != null && !items.isEmpty()) {
               for (Item i : items) {
-                g.drawImage(i.getWorldAppearance(mAnimFrame), x_off + (x << 5),
-                    y_off_z, color);
+                g.drawImage(i.getWorldAppearance(mAnimFrame), x_off
+                    + (x << 5), y_off_z, color);
               }
             }
 
             // Draw units
-            ArrayList<Unit> units = t[z].getUnits();
+            ArrayList<Unit> units = t.getUnits();
             if (units != null && !units.isEmpty()) {
               for (Unit u : units) {
-                g.drawImage(u.getImage(), x_off + (x << 5), y_off_z - 4, color);
+                g.drawImage(u.getImage(), x_off + (x << 5), y_off_z - 4,
+                    color);
               }
             }
+
           }
+          
         }
         ++tx;
         ++ty;
@@ -337,6 +334,15 @@ public class World {
 
     return new Coord(wx, wy, viewPos.z);
   }
+  
+  public void saveView(int i) {
+    savedViews[i] = new Coord(viewPos);
+    MainState.message(String.format("Saved view: #%d",i+1));
+  }
+  
+  public void recallView(int i) {
+    centerAt(new Coord(savedViews[i]));
+  }
 
   public void centerAt(Coord c) {
     viewPos = c;
@@ -366,6 +372,11 @@ public class World {
         && c.z >= -worldSize / 2 && c.z < worldSize / 2);
   }
 
+  public boolean isInBounds(int x, int y, int z) {
+    return (x >= -worldSize / 2 && x < worldSize / 2 && y >= -worldSize / 2
+        && y < worldSize / 2 && z >= -worldSize / 2 && z < worldSize / 2);
+  }
+
   public Coord getCursorPos() {
     return (cursorPos);
   }
@@ -373,10 +384,9 @@ public class World {
   public Coord getUndergroundPoint() {
     Coord c;
     do {
-      c = new Coord(MountainKing.r.nextInt(worldSize) - worldSize / 2,
-          MountainKing.r.nextInt(worldSize) - worldSize / 2, MountainKing.r
-              .nextInt(worldSize)
-              - worldSize / 2);
+      c = new Coord(R.getInstance().nextInt(worldSize) - worldSize / 2, R
+          .getInstance().nextInt(worldSize)
+          - worldSize / 2, R.getInstance().nextInt(worldSize) - worldSize / 2);
     } while ((mTerrain.getTypeAt(c).getFlags() & TerrainType.SOLID) != TerrainType.SOLID);
 
     return (c);
@@ -385,8 +395,8 @@ public class World {
   public Coord getSurfacePoint() {
     int x, y, z;
     do {
-      x = MountainKing.r.nextInt(worldSize) - worldSize / 2;
-      y = MountainKing.r.nextInt(worldSize) - worldSize / 2;
+      x = R.getInstance().nextInt(worldSize) - worldSize / 2;
+      y = R.getInstance().nextInt(worldSize) - worldSize / 2;
       z = findSurfaceZ(x, y);
     } while ((mTerrain.getTypeAt(x, y, z - 1).getFlags() & TerrainType.SOLID) != TerrainType.SOLID);
 
@@ -400,5 +410,9 @@ public class World {
 
   public Player getPlayer() {
     return (mPlayer);
+  }
+
+  public Coord getView() {
+    return(viewPos);
   }
 }
