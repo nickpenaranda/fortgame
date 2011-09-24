@@ -4,7 +4,6 @@ import java.util.ArrayList;
 
 import org.n4p.mountainking.Coord;
 import org.n4p.mountainking.Owner;
-import org.n4p.mountainking.World;
 import org.n4p.mountainking.items.Item;
 import org.n4p.mountainking.items.ItemException;
 import org.n4p.mountainking.units.Unit;

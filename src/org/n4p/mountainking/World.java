@@ -46,6 +46,7 @@ public class World {
   private final Color depthFilter[] = { new Color(32, 32, 32),
       new Color(64, 64, 64), new Color(96, 96, 96), new Color(128, 128, 128),
       new Color(160, 160, 160), new Color(192, 192, 192) };
+  private Coord mPanTo = null;
 
   private World() {
     mTerrain = new Terrain(worldSize);
@@ -267,11 +268,11 @@ public class World {
 
             // Draw terrain
             Image img = t.getType().getImage(mAnimFrame);
-            
+
             if (img != null) {
               g.drawImage(img, x_off + (x << 5), y_off_z, color);
-              if(z - depthLimit == -1) {
-                if(tx == cursorPos.x && ty == cursorPos.y) 
+              if (z - depthLimit == -1) {
+                if (tx == cursorPos.x && ty == cursorPos.y)
                   g.drawImage(reticuleSelect, x_off + (x << 5), y_off_z,
                       Color.yellow);
                 else
@@ -279,13 +280,13 @@ public class World {
                       Color.white);
               }
             }
-            
+
             // Draw items
             ArrayList<Item> items = t.getItems();
             if (items != null && !items.isEmpty()) {
               for (Item i : items) {
-                g.drawImage(i.getWorldAppearance(mAnimFrame), x_off
-                    + (x << 5), y_off_z, color);
+                g.drawImage(i.getWorldAppearance(mAnimFrame), x_off + (x << 5),
+                    y_off_z, color);
               }
             }
 
@@ -293,13 +294,12 @@ public class World {
             ArrayList<Unit> units = t.getUnits();
             if (units != null && !units.isEmpty()) {
               for (Unit u : units) {
-                g.drawImage(u.getImage(), x_off + (x << 5), y_off_z - 4,
-                    color);
+                g.drawImage(u.getImage(), x_off + (x << 5), y_off_z - 4, color);
               }
             }
 
           }
-          
+
         }
         ++tx;
         ++ty;
@@ -334,14 +334,20 @@ public class World {
 
     return new Coord(wx, wy, viewPos.z);
   }
-  
+
   public void saveView(int i) {
     savedViews[i] = new Coord(viewPos);
-    MainState.message(String.format("Saved view: #%d",i+1));
+    MainState.message(String.format("Saved view: #%d", i + 1));
   }
-  
+
   public void recallView(int i) {
-    centerAt(new Coord(savedViews[i]));
+    // centerAt(new Coord(savedViews[i]));
+    panTo(savedViews[i]);
+    mPlayer.setViewLock(false);
+  }
+
+  void panTo(Coord coord) {
+    mPanTo = coord;
   }
 
   public void centerAt(Coord c) {
@@ -413,6 +419,19 @@ public class World {
   }
 
   public Coord getView() {
-    return(viewPos);
+    return (viewPos);
+  }
+
+  public void panViewToLocation() {
+    if (mPanTo != null) {
+      int dx = mPanTo.x - viewPos.x, dy = mPanTo.y - viewPos.y, dz = mPanTo.z - viewPos.z;
+
+      if (Coord.distance(viewPos, mPanTo) > 2)
+        viewPos.moveThis(dx / 2, dy / 2, dz / 2);
+      else {
+        viewPos.setTo(mPanTo.x, mPanTo.y, mPanTo.z);
+        mPanTo = null;
+      }
+    }
   }
 }

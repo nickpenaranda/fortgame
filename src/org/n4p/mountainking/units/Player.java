@@ -9,8 +9,9 @@ public class Player extends Unit {
   private static final int THINK_INTERVAL = 100;
   private static final int VIEWLOCK_INTERVAL = 750;
   private int mThinkTimeout = 0;
-  private boolean mViewLock = false;
   private int mViewLockTimeout = 0;
+
+  private boolean mViewLock = false;
 
   Path mPath = null;
 
@@ -25,11 +26,11 @@ public class Player extends Unit {
 
   @Override
   public void think(World world, int delta) {
-    mThinkTimeout += delta;
+    mThinkTimeout -= delta;
     mViewLockTimeout -= delta;
 
-    while (mThinkTimeout > THINK_INTERVAL) {
-      mThinkTimeout -= THINK_INTERVAL;
+    if (mThinkTimeout <= 0) {
+      mThinkTimeout = THINK_INTERVAL;
       if (mPath != null && !mPath.isEmpty()) {
         Coord dest = mPath.pop();
         moveTo(dest);
@@ -61,4 +62,9 @@ public class Player extends Unit {
   public void toggleViewLock() {
     mViewLock = !mViewLock;
   }
+
+  public void setViewLock(boolean b) {
+    mViewLock = b;
+  }
+
 }

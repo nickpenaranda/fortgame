@@ -1,7 +1,6 @@
 package org.n4p.mountainking;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import org.n4p.mountainking.items.ItemGraphic;
@@ -21,9 +20,11 @@ public class MainState extends BasicGameState {
   private static final long ANIM_INTERVAL = 500;
   private static final int VERTICAL_MOVEMENT_INTERVAL = 200;
   private static final long CONSOLIDATE_INTERVAL = 5000;
+  private static final long PAN_INTERVAL = 34;
+  
   private static final int MOVEMENT_SCALE = 14;
 
-  private long mGameTime, mLastAnim, mLastConsolidate;
+  private long mGameTime, mLastAnim, mLastConsolidate, mLastPan;
   private boolean mAnimFrame = true;
   private static final int STATE_ID = 1;
 
@@ -96,8 +97,19 @@ public class MainState extends BasicGameState {
   @Override
   public void render(GameContainer container, StateBasedGame game, Graphics g)
       throws SlickException {
+    
+    // Render world
     mGame.mWorld.render(container, g, mAnimFrame);
-
+        
+    // Render messages
+    int y = 0;
+    for (Message m : messages) {
+      g.drawString(m.text, 10, (y++) * 15);
+    }
+    
+    // Render player information overlay
+    
+    // Render debug information 
     g.setColor(Color.white);
     if (mDebug) {
       g.drawString("" + mGameTime + (mPaused ? " PAUSED" : ""), 10, 25);
@@ -105,10 +117,6 @@ public class MainState extends BasicGameState {
       g.drawString("Count = " + Terrain.count, 10, 55);
     }
 
-    int y = 0;
-    for (Message m : messages) {
-      g.drawString(m.text, 10, (y++) * 15);
-    }
   }
 
   @Override
@@ -175,6 +183,11 @@ public class MainState extends BasicGameState {
     for (Message m : new ArrayList<Message>(messages)) {
       if (System.nanoTime() / 1000000 > m.timeStamp + MESSAGE_DURATION)
         messages.remove(m);
+    }
+    
+    if (mRenderTime - mLastPan > PAN_INTERVAL) {
+      mGame.mWorld.panViewToLocation();
+      mLastPan = mRenderTime;
     }
   }
 
@@ -247,7 +260,8 @@ public class MainState extends BasicGameState {
       mPaused = !mPaused;
       break;
     case Input.KEY_SPACE:
-      mGame.mWorld.centerAt(mGame.mWorld.getPlayer().getLocation());
+      mGame.mWorld.panTo(mGame.mWorld.getPlayer().getLocation());
+      mGame.mWorld.getPlayer().setViewLock(true);
       break;
     case Input.KEY_Z:
       mGame.mWorld.getPlayer().toggleViewLock();
