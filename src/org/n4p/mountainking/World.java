@@ -373,9 +373,10 @@ public class World {
   }
 
   public boolean isInBounds(Coord c) {
-    return (c.x >= -worldSize / 2 && c.x < worldSize / 2
-        && c.y >= -worldSize / 2 && c.y < worldSize / 2
-        && c.z >= -worldSize / 2 && c.z < worldSize / 2);
+    int h = worldSize >> 1;
+    return (c.x >= -h && c.x < h
+        && c.y >= -h && c.y < h
+        && c.z >= -h && c.z < h);
   }
 
   public boolean isInBounds(int x, int y, int z) {
